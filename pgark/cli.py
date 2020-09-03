@@ -1,16 +1,26 @@
 import click
+import json
 from pgark import wayback
+
 
 @click.group()
 @click.option("-s", "--service", type=click.STRING, default='wayback', help="The service, e.g. wayback, permacc")
 # @click.option("-c", "--accept-cache", help="Accept and return cached URL", is_flag=True)
 # --quiet/-q for quiet levels
-def main(url, service):
+def main(service):
     """
     Welcome to pgark
     """
     # TODO: actually allow service selection
     pass
+
+@main.command()
+@click.argument("url")
+def check(url):
+    data = wayback.check_availability(url)
+    click.echo(json.dumps(data, indent=2))
+
+
 
 
 @main.command()
@@ -21,9 +31,8 @@ def save(url, user_agent):
     if user_agent:
         kwargs['user_agent'] = user_agent
 
-
-
-    wayback.snapshot(url, **kwargs)
+    data = wayback.snapshot(url, **kwargs)
+    click.echo(json.dumps(data, indent=2))
 
 if __name__ == "__main__":
     main()

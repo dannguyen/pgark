@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 requests = ">=2.24.0"
 click = "*"
+rich = "*"
+
 
 [dev-packages]
 black = "*"
@@ -13,7 +15,7 @@ twine = "*"
 coverage = "*"
 wheel = "*"
 pytest = "*"
-requests-mock = "*"
+requests-mock = { extras = ['fixture'] }
 
 [requires]
 python_version = "3.8"
