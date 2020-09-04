@@ -59,10 +59,10 @@ Machine API job status response, pass in `-j/--json` flag:
     "last_job_status": {
       "status": "success",
       "duration_sec": 10.638,
-      "job_id": "443e89c2-fd3e-4d01-bd35-abfccc3a124a"
-      ...
-    }
-    ...
+      "job_id": "443e89c2-fd3e-4d01-bd35-abfccc3a124a",
+      "...": "..."
+    },
+    "...": "...",
     "job_url": "http://web.archive.org/status/443e89c2-fd3e-4d01-bd35-abfccc3a124a"
   }
 ```
