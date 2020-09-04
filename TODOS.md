@@ -1,9 +1,34 @@
 # TODOS
 
-- Write cli `check` method; simply returns JSON. Should do something fancier?
-    - option to return just URL; user must set --json flag to get json
+Just done: published 0.0.1 to pypi: https://pypi.org/project/pgark/0.0.1/
+
+
+- [x] Write cli `check` method; simply returns JSON. Should do something fancier?
+    - [x] option to return just URL; user must set --json flag to get json
+    - [wontfix] Check click docs to figure out how to make --json flag common to all subcommands
+
+
+## `wayback save`
+
+- how does `snapshot_url` change when target_url has query params and other messiness?
+- in job status (`last_job_status`), how does `original_url` differ from `snapshot_url` IF there's a redirect?
+
+- [?] is `_init_request` phase needed?
+    - [ ] apparently not?
+
+- current timestamp+URL is returned, even if it's using a cached version. Is there a way to inform user that a new cache was NOT saved?
+    - [X] yes, implemented too_soon methods
+
+- [ ] handle error condition when too many pages have been saved: examples/web.archive.org/job-sorry-too-many
+
+- [ ] clean up the debug logging in `wayback.snapshot()`
+
+- [ ] weird error condition in which job id could not be found in HTML, for a job that was recently done (time.gov)
+
+
+
+
 - Think of a good object oriented way to handle the submethods, if needed...
-- Check click docs to figure out how to make --json flag common to all subcommands
 
 
 - features:

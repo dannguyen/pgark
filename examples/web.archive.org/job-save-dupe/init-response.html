@@ -54,7 +54,7 @@
     <meta property="venmo_id" content="2878003111190856236">
         <script src="/_static/js/raven.min.js" crossorigin="anonymous"></script>
     <script>Raven.config('https://5588e3adb3e545248e893d6f2fc41ba2@wwwb-sentry.us.archive.org/3').install();</script>
-<script type="text/javascript">if('archive_analytics' in window){var v=archive_analytics.values;v.path='/save';v.service='wb';v.server_name='wwwb-app56.us.archive.org';v.server_ms=0;archive_analytics.send_pageview_on_load()}</script>
+<script type="text/javascript">if('archive_analytics' in window){var v=archive_analytics.values;v.path='/save';v.service='wb';v.server_name='wwwb-app103.us.archive.org';v.server_ms=0;archive_analytics.send_pageview_on_load()}</script>
     <link href="/_static/images/archive.ico" rel="shortcut icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
@@ -1643,7 +1643,7 @@
 
     </noscript>                      </ia-topnav>
         </div>
-            <input class="js-tvsearch" type="hidden" value='{"ands":[],"minday":"06/04/2009","maxday":"09/03/2020"}'/>
+            <input class="js-tvsearch" type="hidden" value='{"ands":[],"minday":"06/04/2009","maxday":"09/04/2020"}'/>
     
         
     <script type="text/javascript">show_donation_banner();</script>
@@ -1661,36 +1661,55 @@
       </a>
     </div>
   </div>
+
 <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-        <h2 id="spn-title">Saving page https://www.whitehouse.gov/issues/budget-spending/</h2>
-                <div id="spn-option-mywebarchive">
-            <input type="checkbox" name="wm-save-mywebarchive" id="wm-save-mywebarchive"
-               />
-            <label for="wm-save-mywebarchive">Save also in my web archive.
-              <span id="wm-save-snapshot-success" style="display: none">Done!</span>
-            </label>
+    <div class="col-md-6 col-md-offset-3 text-center">
+        <div class="web_heading">
+            <img class="web_img" src="https://archive.org/web/images/icon_savePage.png" width="48" height="48">
+            <span>Save Page Now</span>
         </div>
-        <div id="spn-result" class="text-center" style="margin: 20px 0;">
-            <div id="saving-msg"></div>
+        <div id="web_save_div">
+            <form class="web-save-form" id="web-save-form" name="wwmform_save" action="/save" method="POST">
+                <input type="text" class="form-control web-save-url-input web_input web_text"
+                     value="https://plainlanguage.gov/"                     id="web-save-url-input" name="url" placeholder="https://" autofocus>
+                                <div id="wm-capture-outlinks" style="display: none">
+                    <input type="checkbox" name="capture_outlinks" id="capture_outlinks"
+                       />
+                    <label for="capture_outlinks">Save outlinks</label>
+                </div>
+                                                <div>
+                    <input type="checkbox" name="capture_all" id="capture_all"
+                       checked  />
+                    <label for="capture_all">Save error pages (HTTP Status=4xx, 5xx)</label>
+                </div>
+                                <div id="wm-capture-screenshot" style="display: none">
+                    <input type="checkbox" name="capture_screenshot" id="capture_screenshot"
+                       />
+                    <label for="capture_screenshot">Save screen shot</label>
+                </div>
+                <div id="wm-save-option" style="display: none">
+                    <input type="checkbox" name="wm-save-mywebarchive" id="wm-save-mywebarchive" />
+                    <label for="wm-save-mywebarchive">Save also in my web archive</label>
+                </div>
+                                <div id="wm-email-result" style="display: none">
+                    <input type="checkbox" name="email_result" id="email_result"
+                       />
+                    <label for="email_result">Please email me the results</label>
+                </div>
+                                                <input type="submit" class="web-save-button web_button web_text" value="SAVE PAGE" style="margin: 16px 0;">
+            </form>
         </div>
-        <div id="spn-progress" class="progress" style="display: none">
-            <div class="progress-bar" role="progressbar" aria-valuenow="2"
-                aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width: 2%;">
-            </div>
-        </div>
-        <textarea id="spn-resources" style="width: 100%; height: 200px; white-space: pre-wrap; overflow: auto"
-            readonly
-            title="List of archived elements in reverse order. Newer items appear on the top."></textarea>
-        <div class="text-right" style="display: none" id="spn-elements-counter-container">Downloaded elements: <span id="spn-elements-counter">1</span></div>
-        <div id="spn-outlinks"></div>
-            </div>
+        <div class="wbs__loader"></div>
+        <div>Capture a web page as it appears now for use as a trusted citation in the future.</div>
+        <div id="wm-auth-features">
+            <a href="https://archive.org/account/login">Sign in</a>
+            to use extra features: "Save outlinks", "Save screen shot" and "My web archive".
+         </div>
+    </div>
 </div>
 <script>
-spn.watchJob("9ec3ae2a-2612-4bbb-96bb-a1b6361d0d52", "/_static/",
-	     2000);
+spn.init();
 </script>
-
 
 </div>
     <noscript>

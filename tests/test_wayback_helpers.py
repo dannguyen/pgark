@@ -2,6 +2,7 @@ import pytest
 import pgark.wayback as wb
 from pathlib import Path
 
+import responses
 
 @pytest.fixture()
 def save_dupe_html():
@@ -22,6 +23,12 @@ def test_savepage_url():
     assert wb.savepage_url(target) == 'http://web.archive.org/save/https://example.com/foo'
 
 
+def test_snapshot_url():
+    target = 'https://example.com'
+    ts = '1999'
+    assert wb.snapshot_url(target, ts) == 'http://web.archive.org/web/1999/https://example.com'
+
+
 def test_extract_job_id(save_submit_html):
     jobid = wb.extract_job_id(save_submit_html)
     assert jobid == '16e4e6ee-b97a-4fd2-ae5b-f6ce3aaea59b'
@@ -34,3 +41,6 @@ def test_extract_too_soon_message(save_dupe_html):
 def text_extract_non_existent_too_soon_message(save_submit_html):
     msg = wb.extract_too_soon_message(save_submit_html)
     assert msg is False
+
+
+

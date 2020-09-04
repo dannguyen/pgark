@@ -1,0 +1,31 @@
+{
+  "status": "pending",
+  "resources": [
+    "https://plainlanguage.gov/",
+    "https://plainlanguage.gov/assets/css/main.css",
+    "https://plainlanguage.gov/assets/uswds/img/favicons/favicon-57.png",
+    "https://plainlanguage.gov/assets/js/build/bundle.js",
+    "https://plainlanguage.gov/assets/img/logo.svg",
+    "https://plainlanguage.gov/assets/uswds/js/uswds.min.js",
+    "https://plainlanguage.gov/assets/uswds/img/close.svg",
+    "https://plainlanguage.gov/assets/uswds/img/plus-alt.svg",
+    "https://plainlanguage.gov/assets/uswds/img/search.svg",
+    "https://plainlanguage.gov/assets/uswds/img/alerts/info.svg",
+    "https://plainlanguage.gov/assets/img/icons/primary/gavel.svg",
+    "https://plainlanguage.gov/assets/fonts/18Franklin-Bold.woff2",
+    "https://plainlanguage.gov/assets/img/icons/base/github.svg",
+    "https://plainlanguage.gov/assets/fonts/18Franklin-Regular.woff2",
+    "https://plainlanguage.gov/assets/fonts/18Franklin-Light.woff2",
+    "https://plainlanguage.gov/assets/img/icons/base/envelope-o.svg",
+    "https://plainlanguage.gov/assets/img/icons/primary/map-signs.svg",
+    "https://plainlanguage.gov/assets/img/icons/base/facebook-f.svg",
+    "https://plainlanguage.gov/assets/img/icons/base/linkedin-in.svg",
+    "https://plainlanguage.gov/assets/img/icons/base/pinterest.svg",
+    "https://plainlanguage.gov/assets/img/icons/base/instagram.svg",
+    "https://plainlanguage.gov/assets/img/icons/base/twitter.svg",
+    "https://plainlanguage.gov/assets/img/icons/primary/pencil.svg",
+    "https://plainlanguage.gov/assets/img/icons/primary/graduation-cap.svg",
+    "https://plainlanguage.gov/assets/img/favicons/favicon.ico"
+  ],
+  "job_id": "e2c84cc0-105f-468f-840e-c34cbec9dcd8"
+}

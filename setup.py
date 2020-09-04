@@ -2,24 +2,47 @@
 # -*- coding: utf-8 -*-
 import os
 from setuptools import setup
+import sys
+
+HERE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
-def read(fname):
-    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
-        return f.read()
+# 'setup.py publish' shortcut.
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist bdist_wheel')
+    os.system('twine upload dist/*')
+    sys.exit()
 
+
+ABOUT = {}
+with open(os.path.join(HERE_PATH, 'pgark', '__about__.py'), 'r') as f:
+    exec(f.read(), ABOUT)
+
+with open('README.md', 'r') as f:
+    README = f.read()
+
+# 'setup.py publish' shortcut.
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist bdist_wheel')
+    os.system('twine upload dist/*')
+    sys.exit()
 
 setup(
-    name='pgark',
-    version='0.0.1',
-    description='Python library and CLI for archiving URLs on popular services like Wayback Machine',
-    long_description=read('README.rst'),
-    author='Dan Nguyen',
-    author_email='dansonguyen@gmail.com',
-    url='https://www.github.com/dannguyen/pgark',
+    name=ABOUT['__title__'],
+    version=ABOUT['__version__'],
+    description=ABOUT['__description__'],
+    author=ABOUT['__author__'],
+    author_email=ABOUT['__author_email__'],
+    url=ABOUT['__url__'],
+
+    long_description=README,
+    long_description_content_type='text/markdown',
+
     packages=('pgark',),
     include_package_data=True,
-    license="MIT",
+
+    python_requires=">=3.6",
+
     install_requires=[
         'requests>=2.20.0',
         'click'
@@ -40,7 +63,7 @@ setup(
         'License :: OSI Approved :: MIT License'
     ],
     project_urls={
-        'Project': 'http://www.pastpages.org/',
+        'Project': 'https://www.github.com/dannguyen/pgark',
         'Source': 'https://www.github.com/dannguyen/pgark',
         'Tracker': 'https://www.github.com/dannguyen/pgark/issues'
     }

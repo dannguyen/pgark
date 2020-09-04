@@ -13,6 +13,14 @@ class CachedPage(Exception):
     pass
 
 
+
+
+
+class SaveJobError(Exception):
+    pass
+
+
+
 class WaybackRuntimeError(Exception):
     """
     An error returned by the Wayback Machine.
@@ -20,12 +28,11 @@ class WaybackRuntimeError(Exception):
     pass
 
 
-class BlockedByRobots(WaybackRuntimeError):
+class WaybackRobotsError(WaybackRuntimeError):
     """
     This error is raised when archive.org has been blocked by the site's robots.txt access control instructions.
     """
     pass
 
-
-class SaveJobError(Exception):
+class WaybackSubmitError(WaybackRuntimeError):
     pass
