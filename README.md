@@ -55,7 +55,7 @@ Machine API job status response, pass in `-j/--json` flag:
   {
     "snapshot_status": "success",
     "snapshot_url": "http://web.archive.org/web/20200904230109/https://www.whitehouse.gov/",
-    ...
+    "...": "..."
     "last_job_status": {
       "status": "success",
       "duration_sec": 10.638,
@@ -99,3 +99,14 @@ Similar libraries, resources, and inspirations
 - Other stuff:
     - https://notes.peter-baumgartner.net/2019/08/01/scraping-archived-data-with-the-wayback-machine/
     - https://pywb.readthedocs.io/en/latest/index.html
+
+
+
+
+Development notes
+-----------------
+
+To run tests:
+
+
+    $ pytest
