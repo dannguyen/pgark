@@ -22,3 +22,23 @@ def test_save_job_polling(job_success_id):
 @pytest.mark.skip(reason='not implemented')
 def test_snapshot(self):
     pass
+
+
+####################
+### snapshot method
+
+def test_snapshot_submit_request(requests_mock):
+    target_url = 'https://plainlanguage.gov/'
+    save_url = wb.savepage_url(target_url)
+
+    resptext = text=Path('examples/web.archive.org/job-save-success/submit-response.html').read_text()
+    requests_mock.post(
+                        save_url,
+                        # data={'url': target_url, 'capture_all': 'on'},
+                        text=resptext,
+                        )
+
+    resp = wb.submit_snapshot_request(requests.Session(), target_url, headers={})
+
+
+    assert f'<h2 id="spn-title">Saving page {target_url}</h2>' in resp.text
