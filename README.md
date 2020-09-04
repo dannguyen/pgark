@@ -25,17 +25,21 @@ To get the JSON response from the Wayback Machine API, pass in the
 
     $ pgark check -j whitehouse.gov
 
-    {
-      "archived_snapshots": {
-        "closest": {
-          "timestamp": "20200904180914",
-          "status": "200",
-          "available": true,
-          "url": "http://web.archive.org/web/20200904180914/https://www.whitehouse.gov/"
-        }
-      },
-      "url": "whitehouse.gov"
+
+```json
+{
+  "archived_snapshots": {
+    "closest": {
+      "timestamp": "20200904180914",
+      "status": "200",
+      "available": true,
+      "url": "http://web.archive.org/web/20200904180914/https://www.whitehouse.gov/"
     }
+  },
+  "url": "whitehouse.gov"
+}
+```
+
 
 To save a URL on the Wayback Machine:
 
@@ -47,17 +51,21 @@ Machine API job status response, pass in `-j/--json` flag:
 
     $ pgark -j save whitehouse.gov
 
-    {
-      "snapshot_status": "success",
-      "snapshot_url": "http://web.archive.org/web/20200904230109/https://www.whitehouse.gov/",
+```json
+  {
+    "snapshot_status": "success",
+    "snapshot_url": "http://web.archive.org/web/20200904230109/https://www.whitehouse.gov/",
+    ...
+    "last_job_status": {
+      "status": "success",
+      "duration_sec": 10.638,
+      "job_id": "443e89c2-fd3e-4d01-bd35-abfccc3a124a"
       ...
-      "last_job_status": {
-        "status": "success",
-        "duration_sec": 10.638,
-        "job_id": "443e89c2-fd3e-4d01-bd35-abfccc3a124a"
-        ...
-      }
     }
+    ...
+    "job_url": "http://web.archive.org/status/443e89c2-fd3e-4d01-bd35-abfccc3a124a"
+  }
+```
 
 See an example of the Wayback Machine\'s full JSON response in:
 [examples/web.archive.org/job-save-success.json](examples/web.archive.org/job-save-success.json)
