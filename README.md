@@ -56,7 +56,7 @@ Machine API job status response, pass in `-j/--json` flag:
     "snapshot_status": "success",
     "snapshot_url": "http://web.archive.org/web/20200904230109/https://www.whitehouse.gov/",
     "...": "...",
-    "last_job_status": {
+    "server_payload": {
       "status": "success",
       "duration_sec": 10.638,
       "job_id": "443e89c2-fd3e-4d01-bd35-abfccc3a124a",

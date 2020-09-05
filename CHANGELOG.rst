@@ -2,6 +2,25 @@
 CHANGELOG
 *********
 
+0.0.3
+=====
+
+General
+-------
+
+- Archiver data object
+    - subcommands now return expected app/request-specific metadata (e.g. "snapshot_url", "target_url"), while also having a "server_payload" key that contains the last/most relevant JSON payload returned from server
+    - data has a ``"issues": {}`` key to contain warnings and other problematic, but not error-level situations, e.g. Wayback machine saying too many snapshots made in a day
+
+
+wayback.save
+------------
+
+- has basic handling of situation in which Wayback Machine says too many captures made that day:
+    - Calls availability endpoint and returns most recent snapshot URL
+
+
+
 0.0.2
 =====
 

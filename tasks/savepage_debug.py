@@ -35,7 +35,7 @@ def main():
     dest_dir.joinpath('init-response.html').write_text(init_resp.text)
 
 
-    save_url = savepage_url(target_url)
+    save_url = url_for_savepage(target_url)
     save_headers = init_headers.copy()
     save_headers.update({'Referer': SAVE_ENDPOINT})
     save_payload = {'url': target_url, 'capture_all': 'on'}
@@ -45,7 +45,7 @@ def main():
     # TKTK
 
     job_id = extract_job_id(save_resp.text)
-    job_url = jobstatus_url(job_id)
+    job_url = url_for_jobstatus(job_id)
     print(f'{job_id=}\n{job_url=}')
 
 

@@ -24,7 +24,7 @@ def test_main_cli_default_hello():
 
 
 def test_version_check():
-    assert pgark.__version__ == runner.invoke(maincli, ['--version']).output.strip()
+    assert pgark.__version__ == runner.invoke(maincli, ["--version"]).output.strip()
 
 
 ####################
@@ -36,7 +36,7 @@ def test_check():
     datatext = EXAMPLES_DIR.joinpath("check/available-true.json").read_text()
     data = jsonlib.loads(datatext)
 
-    responses.add("GET", wb.availability_url(target_url), body=datatext, status=200)
+    responses.add("GET", wb.url_for_availability(target_url), body=datatext, status=200)
 
     result = runner.invoke(checkcli, [target_url])
     assert result.output == data["archived_snapshots"]["closest"]["url"] + "\n"
@@ -49,10 +49,14 @@ def test_check_w_json():
     datatext = EXAMPLES_DIR.joinpath("check/available-true.json").read_text()
     data = jsonlib.loads(datatext)
 
-    responses.add("GET", wb.availability_url(target_url), body=datatext, status=200)
+    responses.add("GET", wb.url_for_availability(target_url), body=datatext, status=200)
 
     result = runner.invoke(checkcli, [target_url, "-j"])
-    assert result.output == datatext
+    jd = jsonlib.loads(result.output)
+    assert jd["target_url"] == target_url
+    ad = jd["server_payload"]["archived_snapshots"]["closest"]
+    assert jd["snapshot_url"] == ad["url"]
+    assert ad["available"] is True
 
 
 @responses.activate
@@ -62,7 +66,7 @@ def test_check_not_available():
     datatext = EXAMPLES_DIR.joinpath("check/available-false.json").read_text()
     data = jsonlib.loads(datatext)
 
-    responses.add("GET", wb.availability_url(target_url), body=datatext, status=200)
+    responses.add("GET", wb.url_for_availability(target_url), body=datatext, status=200)
 
     result = runner.invoke(checkcli, [target_url])
     assert result.output == "\n"
@@ -75,10 +79,14 @@ def test_check_not_available_w_json():
     datatext = EXAMPLES_DIR.joinpath("check/available-false.json").read_text()
     data = jsonlib.loads(datatext)
 
-    responses.add("GET", wb.availability_url(target_url), body=datatext, status=200)
+    responses.add("GET", wb.url_for_availability(target_url), body=datatext, status=200)
 
     result = runner.invoke(checkcli, [target_url, "-j"])
-    assert result.output == datatext
+    jd = jsonlib.loads(result.output)
+
+    assert jd["target_url"] == target_url
+    assert not jd["snapshot_url"]
+    assert jd["server_payload"]["archived_snapshots"] == {}
 
 
 ####################
@@ -88,9 +96,32 @@ def test_check_not_available_w_json():
 @pytest.mark.skip(
     reason="Implement unit test for wayback.snapshot first, before doing cli functional test"
 )
+@responses.activate
 def test_save():
     target_url = "https://plainlanguage.gov/"
     # mock the submit request
-    # requests_mock.post(wb.savepage_url(target_url), data={'url': target_url, 'capture_all': 'on'}
+    # requests_mock.post(wb.url_for_savepage(target_url), data={'url': target_url, 'capture_all': 'on'}
     #                     text
     #                     )
+
+
+@pytest.mark.skip(reason="Because")
+@responses.activate
+def test_save_with_json():
+    pass
+
+
+@pytest.mark.skip(reason="need to figure out how to pytest for stderr output")
+@responses.activate
+def test_save_with_issues():
+    """
+    for too_soon, should still get a snapshot_url, but also should get info level log output
+
+    """
+    pass
+
+
+# @pytest.mark.skip(reason="Because")
+# @responses.activate
+# def test_foooo():
+#     pass

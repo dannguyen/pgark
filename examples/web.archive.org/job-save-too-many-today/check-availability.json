@@ -1,0 +1,11 @@
+{
+  "url": "https://nytimes.com",
+  "archived_snapshots": {
+    "closest": {
+      "available": true,
+      "status": "200",
+      "timestamp": "20200905140202",
+      "url": "http://web.archive.org/web/20200905140202/https://www.nytimes.com/"
+    }
+  }
+}
