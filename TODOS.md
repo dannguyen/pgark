@@ -3,19 +3,22 @@
 
 Most recent: 
 
-- [X] wayback.save: when Wayback says "too many captures for today", fall back to availability API check to get nearest snapshot
+- [ ] wayback.save: add `-wt/--within` to skip saving if the most recent snapshot is within `[HOURS]`
+    - [x] basic implementation stuffed in cli
+    - [ ] failing test test_save_unless_within_hours() to implement later
+- [X] added pipenv stuff to Makefile; use `make freeze` and `make ship` to publish to pypi
+
 
 ----------------------------------
 
 In general
-
 - [ ] Should `server_payload` include HTML if HTML is the last/most relevant response?
 
 
 ----------------------------------
 #### `wayback save`
-- [ ] wayback.save: add flag to only save UNLESS a snapshot was found within x-days/time
 
+- [X] wayback.save: when Wayback says "too many captures for today", fall back to availability API check to get nearest snapshot
 
 - [ ] clean up the debug logging in `wayback.snapshot()`
 - how does `snapshot_url` change when target_url has query params and other messiness?

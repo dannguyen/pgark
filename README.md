@@ -106,15 +106,24 @@ Similar libraries, resources, and inspirations
 Development notes
 -----------------
 
-To resync Pipfile.lock and setup.py
+
+To get setup:
 
 ```
-  $ pipenv lock --pre
-  $ pipenv-setup sync --dev
-
+$ make init
 ```
+
 
 
 To run tests:
 
-    $ pytest
+```
+$ make test
+```
+
+
+To freeze Pipfile.lock and resync with setup.py
+
+```
+$ make freeze
+```

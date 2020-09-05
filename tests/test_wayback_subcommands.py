@@ -1,11 +1,17 @@
+
 import pytest
+from freezegun import freeze_time
 import responses
 
+import json as jsonlib
 from pathlib import Path
 import requests
 
+
 from pgark.exceptions import *
 import pgark.archivers.wayback as wb
+
+
 
 
 EXAMPLES_DIR = Path("examples/web.archive.org/")
@@ -227,6 +233,10 @@ def test_snapshot_successful():
     assert jd["original_url"] == target_url
 
 
+
+
+#########################
+# warning situations
 @responses.activate
 def test_snapshot_too_soon():
     srcdir = EXAMPLES_DIR.joinpath("job-save-too-soon")
@@ -300,3 +310,35 @@ def test_snapshot_too_many_for_period():
 
     # server payload ends up being availability API response
     assert data["server_payload"]["archived_snapshots"]["closest"]["available"] is True
+
+
+
+
+
+
+@freeze_time("2015-11-20")
+@responses.activate
+def test_save_unless_within_hours():
+    target_url = "http://example.com/foo"
+    payload = {
+              "url": "http://example.com/foo",
+              "archived_snapshots": {
+                "closest": {
+                  "available": True,
+                  "status": "200",
+                  "timestamp": "20151120111111",
+                  "url": "http://web.archive.org/web/20151118111111/http://example.com/foo"
+                }
+              }
+            }
+
+    responses.add(
+        'GET',
+        body=jsonlib.dumps(payload),
+
+    )
+
+    answer, data = wb.snapshot(target_url, within_hours=24)
+    assert data['was_new_snapshot_created'] is False
+    assert answer == data['snapshot_url']
+    assert data['server_payload'] == payload

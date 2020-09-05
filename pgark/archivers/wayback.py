@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from pgark.exceptions import *
 from pgark.mylog import mylogger
+
+from datetime import datetime
 from lxml.html import fromstring as htmlparse, HtmlElement
 from pathlib import Path
 import re
@@ -27,6 +29,8 @@ DEFAULT_HEADERS = {
 DEFAULT_POLL_INTERVAL = 3
 
 MAX_JOB_POLLS = 20
+
+
 
 
 def extract_job_id(html: tyUnion[str, HtmlElement]) -> str:
@@ -60,6 +64,26 @@ def extract_too_soon_issue(html: tyUnion[str, HtmlElement]) -> tyUnion[str, bool
         return matches[0]
     else:
         return False
+
+
+def extract_wayback_datetime(txt:str) -> datetime:
+    """
+    txt is either a 14-char timestamp by itself:
+            "20200312180055"
+        or part of a URL like:
+            "http://web.archive.org/web/20200903230055/https://www.whitehouse.gov/issues/immigration/"
+
+    Returns a datetime object with UTC timezone
+    """
+
+    try:
+        m = re.search(r'(?:^|/)(\d{14})(?:$|/)', txt)
+        ts = m.groups()[0] + ' +0000'
+        dt = datetime.strptime(ts, '%Y%m%d%H%M%S %z')
+    except Exception as e:
+        raise ValueError(f"Attempted to extract a 14-digit timestamp, but did not find pattern in {txt}")
+    else:
+        return dt
 
 
 def extract_too_many_during_period_issue(
@@ -122,7 +146,24 @@ def url_for_snapshot(target_url: str, timestamp: tyUnion[str, int]) -> str:
 
 def check_availability(target_url: str) -> tyTuple[tyUnion[None, str], dict]:
     """
-    https://archive.org/wayback/available?url=www.whitehouse.gov/issues/immigration/
+
+    API info:
+        https://archive.org/help/wayback_api.php
+
+    Simple call:
+        https://archive.org/wayback/available?url=www.whitehouse.gov/issues/immigration/
+
+    Sample 'server_payload':
+    {
+        "archived_snapshots": {
+            "closest": {
+                "available": true,
+                "url": "http://web.archive.org/web/20060101064348/http://www.example.com:80/",
+                "timestamp": "20060101064348",
+                "status": "200"
+            }
+        }
+    }
     """
 
     # because kenneth r said to send URL literal param directly....

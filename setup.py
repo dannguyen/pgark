@@ -9,11 +9,12 @@ ABOUT = {}
 HERE_PATH = os.path.abspath(os.path.dirname(__file__))
 PIP = pipfile.load("Pipfile")
 
-# 'setup.py publish' shortcut.
-if sys.argv[-1] == "publish":
-    os.system("python setup.py sdist bdist_wheel")
-    os.system("twine upload dist/*")
-    sys.exit()
+# deprecated by `make ship`
+# # 'setup.py publish' shortcut.
+# if sys.argv[-1] == "publish":
+#     os.system("python setup.py sdist bdist_wheel")
+#     os.system("twine upload dist/*")
+#     sys.exit()
 
 
 with open(os.path.join(HERE_PATH, "pgark", "__about__.py"), "r") as f:
@@ -26,7 +27,7 @@ setup(
     extras_require={
         "dev": [
             "appdirs==1.4.4",
-            "attrs==20.1.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "attrs==20.2.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "black==20.8b1",
             "bleach==3.1.5; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
             "certifi==2020.6.20",
@@ -35,6 +36,7 @@ setup(
             "colorama==0.4.3; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
             "coverage==5.2.1",
             "docutils==0.16; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+            "freezegun==1.0.0",
             "idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "iniconfig==1.0.1",
             "keyring==21.4.0; python_version >= '3.6'",
@@ -46,17 +48,18 @@ setup(
             "pluggy==0.13.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "py==1.9.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "pygments==2.6.1; python_version >= '3.5'",
-            "pyparsing==2.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2'",
+            "pyparsing==2.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "pytest==6.0.1",
+            "python-dateutil==2.8.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "readme-renderer==26.0",
             "regex==2020.7.14",
             "requests==2.24.0",
             "requests-toolbelt==0.9.1",
             "responses==0.12.0",
             "rfc3986==1.4.0",
-            "six==1.15.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "six==1.15.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "toml==0.10.1",
-            "tqdm==4.48.2; python_version >= '2.6' and python_version not in '3.0, 3.1'",
+            "tqdm==4.48.2; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "twine==3.2.0",
             "typed-ast==1.4.1",
             "typing-extensions==3.7.4.3",
@@ -83,7 +86,9 @@ setup(
         "click==7.1.2",
         "colorama==0.4.3; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
         "commonmark==0.9.1",
+        "cssselect==1.1.0",
         "idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+        "lxml==4.5.2",
         "pygments==2.6.1; python_version >= '3.5'",
         "requests==2.24.0",
         "rich==6.0.0",
