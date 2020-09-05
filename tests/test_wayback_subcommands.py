@@ -81,10 +81,9 @@ def test_save_job_polling():
     jid = "af709a09-c909-4883-b6b3-7350f9be8d7c"
     url = wb.url_for_jobstatus(jid)
     resptext = EXAMPLES_DIR.joinpath("job-status-success.json").read_text()
-
     responses.add("GET", url, body=resptext)
 
-    resp = wb.get_job_status(jid)
+    resp = wb.fetch_job_status(jid)
     assert resp["status"] == "success"
 
 

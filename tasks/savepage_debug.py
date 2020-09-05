@@ -51,7 +51,7 @@ def main():
 
     stats = []
     for i in range(20):
-        jobx = get_job_status(job_id)
+        jobx = fetch_job_status(job_id)
         dest_path = dest_dir.joinpath(f'status-{i}.json')
         dest_path.write_text(json.dumps(jobx, indent=2))
         print(dest_path)

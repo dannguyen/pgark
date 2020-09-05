@@ -88,7 +88,8 @@ def extract_too_many_during_period_issue(
             )
 
 
-def get_job_status(job_id: str) -> dict:
+def fetch_job_status(job_id: tyUnion[str, HtmlElement]) -> dict:
+    job_id = job_id if isinstance(job_id, str) else extract_job_id(job_id)
     resp = requests.get(url_for_jobstatus(job_id))
     return resp.json()
 
@@ -216,7 +217,7 @@ def snapshot(
         for i in range(MAX_JOB_POLLS):
             mylogger.debug(f"""Polling status, attempt #{i+1}: {df['job_url']}""")
 
-            js = get_job_status(df["job_id"])
+            js = fetch_job_status(df["job_id"])
             df["server_payload"] = js
 
             if js.get("status") == "success":
