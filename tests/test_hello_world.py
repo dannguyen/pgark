@@ -11,41 +11,35 @@ import pgark
 
 def test_version():
     import pgark.__about__ as about
+
     assert pgark.__version__ == about.__version__
+
 
 def test_exception_raisin_syntax():
     with pytest.raises(KeyError) as err:
-        d = {'a': 9}
-        e = d['hello']
+        d = {"a": 9}
+        e = d["hello"]
 
-    assert 'hello' == err.value.args[0]
+    assert "hello" == err.value.args[0]
 
 
 @responses.activate
 def test_post_responses():
-    responses.add('POST',
-       'http://example.com',
-        body='hello',
+    responses.add(
+        "POST",
+        "http://example.com",
+        body="hello",
         status=200,
-        match=[
-            responses.urlencoded_params_matcher({'id': 'good'})
-        ]
+        match=[responses.urlencoded_params_matcher({"id": "good"})],
     )
 
-    requests.post('http://example.com', data={'id': 'good'})
-
-
+    requests.post("http://example.com", data={"id": "good"})
 
 
 @responses.activate
 def test_hello_responses():
     """testing out responses library"""
-    url = 'http://asdf9899.com'
-    responses.add('GET',
-                  url,
-                  body='boo!',
-                  status=200)
+    url = "http://asdf9899.com"
+    responses.add("GET", url, body="boo!", status=200)
     resp = requests.get(url)
-    assert resp.text == 'boo!'
-
-
+    assert resp.text == "boo!"

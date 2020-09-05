@@ -106,7 +106,15 @@ Similar libraries, resources, and inspirations
 Development notes
 -----------------
 
-To run tests:
+To resync Pipfile.lock and setup.py
 
+```
+  $ pipenv lock --pre
+  $ pipenv-setup sync --dev
+
+```
+
+
+To run tests:
 
     $ pytest

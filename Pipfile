@@ -10,12 +10,12 @@ rich = "*"
 
 
 [dev-packages]
-black = "*"
-twine = "*"
+black = ">=19.10b0"
 coverage = "*"
-wheel = "*"
 pytest = "*"
 responses = ">=0.12"
+twine = "*"
+wheel = "*"
 
 [requires]
 python_version = "3.8"
