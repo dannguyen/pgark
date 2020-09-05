@@ -2,6 +2,14 @@
 CHANGELOG
 *********
 
+0.0.2
+=====
+
+cli
+---
+
+- revamped common flags (e.g. ``-q,-v,-j``) to be shared among subcommands
+- added ``--version`` flag to print current version
 
 
 0.0.1

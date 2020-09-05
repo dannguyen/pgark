@@ -4,8 +4,62 @@ import json as jsonlib
 from collections.abc import Mapping
 from typing import NoReturn
 
+import pgark
 from pgark.mylog import mylogger
-from pgark import wayback
+from pgark.archivers import wayback
+
+OPTIONS_COMMON = [
+    click.option("-s", "--service", type=click.Choice(['wayback',]), default='wayback',
+        help="The service, e.g. wayback, permacc"),
+
+]
+
+OPTIONS_OUTPUT = [
+    click.option('-j', '--json', 'output_json', is_flag=True,
+        help="""By default, this subcommand returns a snapshot URL if successful, and nothing if not successful. Set this flag to return
+            the full JSON response"""),
+    click.option('-q', '--quiet', is_flag=True, help="Same as -v/--verbosity 0"),
+    click.option('-v', "--verbosity", type=click.IntRange(min=0, max=2), default=2,
+        help="""\b
+                Verbosity of log messages:
+                  0: Silence (except errors)
+                  1: Informational messages logged
+                  2: Verbose debug log messages
+                  """),
+]
+
+
+def _callback_print_version(ctx, param, value) -> NoReturn:
+    """
+    https://click.palletsprojects.com/en/3.x/options/#callbacks-and-eager-options
+    """
+    if not value or ctx.resilient_parsing:
+        return
+    cliprint(pgark.__version__)
+    ctx.exit()
+
+def _set_verbosity(**kwargs):
+    """TODO: should be decorator?"""
+    if kwargs.get('quiet') is True:
+        mylogger.setLevel('ERROR')
+    else:
+        vb = kwargs.get('verbosity')
+        if vb == 2:
+            mylogger.setLevel('DEBUG')
+        elif vb == 1:
+            mylogger.setLevel('INFO')
+        elif vb == 0:
+            mylogger.setLevel('ERROR')
+
+    mylogger.debug('Logger level: ', mylogger.get_level())
+
+def add_options(*option_sets):
+    def _decorate(func):
+        for options in reversed(option_sets):
+            for opt in reversed(options):
+                func = opt(func)
+        return func
+    return _decorate
 
 
 def cliprint(obj) -> NoReturn:
@@ -14,65 +68,51 @@ def cliprint(obj) -> NoReturn:
     click.echo(obj)
 
 
-@click.group()
-@click.option("-s", "--service", type=click.Choice(['wayback',]), default='wayback',
-    help="The service, e.g. wayback, permacc")
-# @click.option("-c", "--accept-cache", help="Accept and return cached URL", is_flag=True)
-@click.option('-q', '--quiet', is_flag=True, help="Same as -v/--verbosity 0")
-@click.option('-v', "--verbosity", type=click.IntRange(min=0, max=2), default=2,
-    help="""\b
-            Verbosity of log messages:
-              0: Silence (except errors)
-              1: Informational messages logged
-              2: Verbose debug log messages
-              """)
 
-def main(service, quiet, verbosity):
+@click.group()
+@click.option("--version", callback=_callback_print_version, is_eager=True, is_flag=True, help='Print the version of pgark')
+def main(**kwargs):
     """
     Welcome to pgark
     """
-    # TODO: actually allow service selection
-    if quiet == True:
-        mylogger.setLevel('ERROR')
-    else:
-        if verbosity == 2:
-            mylogger.setLevel('DEBUG')
-        elif verbosity == 1:
-            mylogger.setLevel('INFO')
-        elif verbosity == 0:
-            mylogger.setLevel('ERROR')
+    if kwargs.get('version'):
+        cliprint(pgark.__version__)
+        return
 
-    mylogger.debug('Logger level: ', mylogger.get_level())
 
 @main.command()
+@add_options(OPTIONS_COMMON, OPTIONS_OUTPUT)
 @click.argument("url")
-@click.option('-j', '--json', 'output_json', is_flag=True,
-    help="""By default, this subcommand returns the URL of the most recent URL, or nothing at all. Set this flag to return
-            the full JSON response""")
+def check(url, **kwargs):
+    """
+    Check if there is a snapshot of [URL] on the [-s/--service]. Returns the most recent snapshot URL if so; otherwise, returns nothing
+    """
+    _set_verbosity(**kwargs)
 
-def check(url, output_json):
+
     answer, data = wayback.check_availability(url)
-    cliprint(data) if output_json is True else cliprint(answer)
+    cliprint(data) if kwargs['output_json'] is True else cliprint(answer)
 
 
 @main.command()
+@add_options(OPTIONS_COMMON, OPTIONS_OUTPUT)
 @click.argument("url")
 @click.option("-u", "--user-agent", type=click.STRING, help="Specify a User-Agent header for the web request")
-@click.option('-j', '--json', 'output_json', is_flag=True,
-    help="""By default, this subcommand returns the URL of the most recent URL, or nothing at all. Set this flag to return
-            the full JSON response""")
+def save(url, **kwargs):
+    """
+    Attempt to save a snapshot of [URL] using the [-s/--service]. Returns the snapshot URL if successful
+    """
+    _set_verbosity(**kwargs)
 
-def save(url, user_agent, output_json):
-    kwargs = {}
+    snapshot_kwargs = {}
     if user_agent:
-        kwargs['user_agent'] = user_agent
+        snapshot_kwargs['user_agent'] = user_agent
 
-    answer, data = wayback.snapshot(url, **kwargs)
-
+    answer, data = wayback.snapshot(url, **snapshot_kwargs)
     if data['too_soon']:
         mylogger.info(f"{data['too_soon_message']}", label='Wayback Machine response')
 
-    cliprint(data) if output_json is True else cliprint(answer)
+    cliprint(data) if kwargs['output_json'] is True else cliprint(answer)
 
 if __name__ == "__main__":
     main()

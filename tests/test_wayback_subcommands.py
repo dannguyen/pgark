@@ -4,8 +4,9 @@ import responses
 from pathlib import Path
 import requests
 
-import pgark.wayback as wb
 from pgark.exceptions import *
+import pgark.archivers.wayback as wb
+
 
 EXAMPLES_DIR = Path("examples/web.archive.org/")
 
@@ -140,7 +141,6 @@ def test_snapshot_submit_request_not_ok(session):
 ## test snapshot subcommand
 @responses.activate
 def test_snapshot_successful():
-
     #### fixture setup (todo: refactor?)
     srcdir = EXAMPLES_DIR.joinpath("job-save-success")
 
@@ -180,11 +180,11 @@ def test_snapshot_successful():
             )
         ],
     )
+
     responses.add_callback(
         "GET",
         expected_job_url,
         callback=_poll_callback,
-        # content_type='application/json',
     )
 
     answer, data = wb.snapshot(target_url, user_agent="guy incognito", poll_interval=0)
@@ -223,11 +223,38 @@ def test_snapshot_successful():
     assert jd["original_url"] == target_url
 
 
-@pytest.mark.skip(reason="TODO")
 @responses.activate
 def test_snapshot_too_soon():
-    pass
+    srcdir = EXAMPLES_DIR.joinpath("job-save-too-soon")
+    target_url = 'https://plainlanguage.gov/'
 
+    submit_resptext = srcdir.joinpath('submit-response.html').read_text()
+
+    responses.add(
+        "POST",
+        wb.savepage_url(target_url),
+        body=submit_resptext,
+        status=200,
+        match=[
+            responses.urlencoded_params_matcher(
+                {"url": target_url, "capture_all": "on"}
+            )
+        ],
+    )
+
+    responses.add(
+        "GET",
+        wb.jobstatus_url(wb.extract_job_id(submit_resptext)),
+        body=srcdir.joinpath('status-0.json').read_text(),
+        status=200,
+    )
+
+    answer, data = wb.snapshot(target_url, poll_interval=0)
+
+    assert answer == data["snapshot_url"]
+    assert data['snapshot_status'] == 'success'
+    assert data['too_soon'] is True
+    assert data['too_soon_message'] == 'The same snapshot had been made 4 minutes and 18 seconds ago. We only allow new captures of the same URL every 20 minutes.'
 
 @pytest.mark.skip(reason="TODO")
 @responses.activate

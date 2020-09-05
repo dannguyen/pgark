@@ -28,7 +28,6 @@ DEFAULT_HEADERS = {
 
 DEFAULT_POLL_INTERVAL = 3
 
-
 MAX_JOB_POLLS = 20
 
 def extract_job_id(html:str) -> str:

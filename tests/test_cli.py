@@ -6,8 +6,9 @@ import requests
 import json as jsonlib
 from pathlib import Path
 
+import pgark
+import pgark.archivers.wayback as wb
 from pgark.cli import main as maincli, check as checkcli, save as savecli
-import pgark.wayback as wb
 
 EXAMPLES_DIR = Path("examples/web.archive.org/")
 
@@ -20,6 +21,10 @@ def test_main_cli_default_hello():
     assert result.exit_code == 0
     assert "Welcome to pgark" in result.output
     assert "--help" in result.output
+
+
+def test_version_check():
+    assert pgark.__version__ == runner.invoke(maincli, ['--version']).output.strip()
 
 
 ####################

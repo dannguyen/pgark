@@ -8,7 +8,7 @@ from sys import argv
 from time import sleep
 
 
-from pgark.wayback import *
+from pgark.archivers.wayback import *
 
 
 

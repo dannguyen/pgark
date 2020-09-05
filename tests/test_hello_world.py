@@ -7,11 +7,10 @@ from pathlib import Path
 import requests
 
 import pgark
+import pgark.__about__ as about
 
 
 def test_version():
-    import pgark.__about__ as about
-
     assert pgark.__version__ == about.__version__
 
 

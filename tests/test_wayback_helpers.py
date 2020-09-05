@@ -1,5 +1,5 @@
 import pytest
-import pgark.wayback as wb
+import pgark.archivers.wayback as wb
 from pathlib import Path
 
 import responses
@@ -7,7 +7,7 @@ import responses
 
 @pytest.fixture()
 def save_dupe_html():
-    return Path("examples/web.archive.org/save-dupe.html").read_text()
+    return Path("examples/web.archive.org/save-too-soon.html").read_text()
 
 
 @pytest.fixture()
