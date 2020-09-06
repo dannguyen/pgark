@@ -10,7 +10,7 @@ import pgark
 import pgark.archivers.wayback as wb
 from pgark.cli import main as maincli, check as checkcli, save as savecli
 
-EXAMPLES_DIR = Path("examples/web.archive.org/")
+EXAMPLES_DIR = Path("examples/_old")
 
 
 runner = CliRunner()

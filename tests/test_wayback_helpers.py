@@ -7,18 +7,18 @@ import responses
 
 @pytest.fixture()
 def too_soon_html():
-    return Path("examples/web.archive.org/save-too-soon.html").read_text()
+    return Path("examples/_old/save-too-soon.html").read_text()
 
 
 @pytest.fixture()
 def save_submit_html():
-    return Path("examples/web.archive.org/save-submit.html").read_text()
+    return Path("examples/_old/save-submit.html").read_text()
 
 
 @pytest.fixture()
 def too_many_html():
     return Path(
-        "examples/web.archive.org/job-save-too-many-today/submit-response.html"
+        "examples/_old/job-save-too-many-today/submit-response.html"
     ).read_text()
 
 

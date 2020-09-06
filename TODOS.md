@@ -1,7 +1,11 @@
 
 # TODOS
 
-Most recent: 
+
+
+
+On deck:
+- [ ] redo tasks/savepage_debug.py, save headers and stuff too
 
 - [X] wayback.save: add `-wt/--within` to skip saving if the most recent snapshot is within `[HOURS]`
     - [x] basic implementation stuffed in cli
@@ -18,6 +22,11 @@ In general
 - [X] created TaskMeta class
     - [ ] Should `server_payload` include HTML if HTML is the last/most relevant response?
 - [ ] Handle 50x status errors; should be dealt gracefully at CLI level
+- [ ] Document issue in which Wayback Machine availability tells us latest attempted snapshot, but returns an older timestamp(?)
+- [ ] for too_many_today/too_soon, is there a header returned in the submit phase?
+
+
+
 
 ----------------------------------
 #### `wayback save`
@@ -45,12 +54,11 @@ In general
 
 
 
-
-
-
 ----------------------------------
 #### cli
 
+
+- [ ] add '--log-json/--oj/--output-json' to output JSON response to a file
 - [X] cli: make `--verbosity/--quiet` flag part of subcommands, not just main command
     - apparently do as a decorator? https://stackoverflow.com/questions/40182157/shared-options-and-flags-between-commands
 - [X] cli: add version flag `-V/--version`

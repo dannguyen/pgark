@@ -19,7 +19,7 @@ def main():
         TO BE DEPRECATED
     """
     target_url = argv[1]
-    dest_dir = Path('examples', argv[2])
+    dest_dir = Path(argv[2])
     dest_dir.mkdir(exist_ok=True, parents=True)
 
     user_agent = 'Mozilla'

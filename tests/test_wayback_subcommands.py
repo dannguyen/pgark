@@ -11,7 +11,7 @@ from pgark.exceptions import *
 import pgark.archivers.wayback as wb
 
 
-EXAMPLES_DIR = Path("examples/web.archive.org/")
+EXAMPLES_DIR = Path("examples/_old/")
 
 
 @pytest.fixture
