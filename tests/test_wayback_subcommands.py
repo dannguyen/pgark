@@ -139,7 +139,7 @@ def test_snapshot_submit_request_not_ok(session):
         ],
     )
 
-    with pytest.raises(WaybackServerStatusError) as err:
+    with pytest.raises(ServerStatusError) as err:
         resp = wb.submit_snapshot_request(session, target_url, headers={})
     assert (
         f"Server status was NOT OK; returned 503 for: {save_url}" in err.value.args[0]
@@ -194,15 +194,17 @@ def test_snapshot_successful():
         "GET", expected_job_url, callback=_poll_callback,
     )
 
-    answer, data = wb.snapshot(target_url, user_agent="guy incognito", poll_interval=0)
+    answer, meta = wb.snapshot(target_url, user_agent="guy incognito", poll_interval=0)
 
     # make sure snapshot made the expected number of job status polls, plus the POST submit request
     assert len(responses.calls) == CURRENT_STATUS_ATTEMPT + 1
 
     # test return values
     assert type(answer) is str
-    assert type(data) is dict
+    assert type(meta) is wb.SnapshotMeta
 
+
+    data = meta.to_dict()
     # test that answer is snapshot url
     assert (
         answer
@@ -216,14 +218,11 @@ def test_snapshot_successful():
     # test data response
     assert data["was_new_snapshot_created"] is True
     assert data["snapshot_url"] == answer
-    assert data["snapshot_request"]["user_agent"] == "guy incognito"
+    assert data["request_meta"]["user_agent"] == "guy incognito"
 
     issues = data["issues"]
     assert issues["too_soon"] is False
     assert issues["too_many_during_period"] is False
-
-    assert data["job_id"] == expected_job_id
-    assert data["job_url"] == expected_job_url
 
     jd = data["server_payload"]
     assert jd["status"] == "success"
@@ -263,14 +262,12 @@ def test_snapshot_too_soon():
         status=200,
     )
 
-    answer, data = wb.snapshot(target_url, poll_interval=0)
+    answer, meta = wb.snapshot(target_url, poll_interval=0)
 
-    assert answer == data["snapshot_url"]
-    assert data["was_new_snapshot_created"] is False
-
+    assert answer == meta.snapshot_url
+    assert meta.was_new_snapshot_created() is False
     assert (
-        data["issues"]["too_soon"]
-        == "The same snapshot had been made 4 minutes and 18 seconds ago. We only allow new captures of the same URL every 20 minutes."
+        meta.too_soon() == "The same snapshot had been made 4 minutes and 18 seconds ago. We only allow new captures of the same URL every 20 minutes."
     )
 
 
@@ -299,23 +296,23 @@ def test_snapshot_too_many_for_period():
         body=srcdir.joinpath("check-availability.json").read_text(),
     )
 
-    answer, data = wb.snapshot(target_url, poll_interval=0)
+    answer, meta = wb.snapshot(target_url, poll_interval=0)
 
-    assert answer == data["snapshot_url"]
-    assert data["was_new_snapshot_created"] == False
+    assert answer == meta.snapshot_url
+    assert meta.was_new_snapshot_created() == False
     assert (
-        data["issues"]["too_many_during_period"]
-        == """This URL has been already captured 10 times today. Please email us at "info@archive.org" if you would like to discuss this more."""
+         meta.too_many_during_period() == """This URL has been already captured 10 times today. Please email us at "info@archive.org" if you would like to discuss this more."""
     )
 
-    # server payload ends up being availability API response
-    assert data["server_payload"]["archived_snapshots"]["closest"]["available"] is True
+    # import pdb; pdb.set_trace()
+    # server payload is the payload returned by availability API response
+    assert meta.server_payload["archived_snapshots"]["closest"]["available"] is True
 
 
 
 
 
-
+@pytest.mark.skip(reason="priority todo")
 @freeze_time("2015-11-20")
 @responses.activate
 def test_save_unless_within_hours():
