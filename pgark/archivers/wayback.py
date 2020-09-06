@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 from pgark.exceptions import *
 from pgark.mylog import mylogger
-from pgark.snapshot_meta import SnapshotMeta
-
+from pgark.task_meta import TaskMeta
 
 from datetime import datetime
 from lxml.html import fromstring as htmlparse, HtmlElement
@@ -33,7 +32,7 @@ DEFAULT_POLL_INTERVAL = 3
 MAX_JOB_POLLS = 20
 
 
-def check_availability(target_url: str, current_task: tyUnion[None, SnapshotMeta] = None) -> tyTuple[tyUnion[None, str], dict]:
+def check_availability(target_url: str, user_agent:tyUnion[None, str] = DEFAULT_USER_AGENT ) -> tyTuple[tyUnion[None, str], TaskMeta]:
     """
 
     API info:
@@ -55,36 +54,26 @@ def check_availability(target_url: str, current_task: tyUnion[None, SnapshotMeta
     }
     """
 
-    # because kenneth r said to send URL literal param directly....
-    # https://stackoverflow.com/a/23497903
+    task = TaskMeta(target_url=target_url, service='wayback', subcommand='check')
     resp = requests.get(url_for_availability(target_url))
     # TODO: status check blah blah
     if not resp.status_code == 200:
         raise ServerStatusError(f"Did not get OK HTTP status; got: {resp.status_code}")
     else:
-        df = {
-            "snapshot_url": None,
-            "target_url": target_url,
-            "server_payload": {},
-        }
+       task.set_payload(resp.json())
+       # TODO: this should be handled by TaskMeta somehow....
+       if ax := task.server_payload["archived_snapshots"]:
+           task.snapshot_url = ax["closest"]["url"]
 
-        df["server_payload"] = resp.json()
-        if df["server_payload"].get("archived_snapshots"):
-            df["snapshot_url"] = df["server_payload"]["archived_snapshots"]["closest"][
-                "url"
-            ]
-
-        return (df["snapshot_url"], df)
-
-
-
+       return task.snapshot_url, task
 
 
 def snapshot(
     target_url: str,
+    within_hours: int = None,
     user_agent: str = DEFAULT_USER_AGENT,
     poll_interval=DEFAULT_POLL_INTERVAL,
-) -> tyTuple[tyUnion[None, str], SnapshotMeta]:
+) -> tyTuple[tyUnion[None, str], TaskMeta]:
 
 
     mylogger.debug(f"Snapshotting: {target_url}")
@@ -102,10 +91,31 @@ def snapshot(
     #     "server_payload": {},
     # }
 
-    meta = SnapshotMeta(target_url=target_url, service='wayback', user_agent=user_agent, )
-
     session = requests.Session()
+    meta = TaskMeta(target_url=target_url, service='wayback', subcommand='snapshot',
+        user_agent=user_agent, )
 
+    if within_hours:
+        # do intermediary check availability
+        mylogger.debug(f"Checking availability of most recent snapshot since {within_hours} hours")
+        meta.request_meta['within_hours'] = within_hours
+        recent_url, rmeta = check_availability(target_url)
+        if recent_url:
+            urltime = extract_wayback_datetime(recent_url)
+
+            if not meta.created_within(within_hours, dt=urltime):
+                mylogger.debug(f"Recent snapshot URL did not meet threshold of {within_hours} hours, proceeding with normal save")
+            else:
+                mylogger.debug(f"Recent snapshot URL within threshold of {within_hours} hours; returning availability response")
+                meta.redirected_task = rmeta
+                meta.snapshot_url = rmeta.snapshot_url
+                meta.set_payload(rmeta.server_payload)
+
+                return (meta.snapshot_url, meta)
+
+
+    # if we get to here, we proceed as normal, and assume that recent_snapshot did not
+    # meet within-hours cutoff, if it was even specified
     mylogger.info(f"Making submission request to {SAVE_ENDPOINT} for {target_url}")
     sub_resp = submit_snapshot_request(session, target_url, headers)
 
@@ -128,9 +138,8 @@ def snapshot(
         )
         # TODO: do special error handling here? If availability API is down, we should still return
         #   some kind of partial response...
-        meta.snapshot_url, ckpayload = check_availability(target_url)
-        meta.set_payload(ckpayload['server_payload'])
-
+        meta.snapshot_url, ck = check_availability(target_url)
+        meta.set_payload(ck.server_payload)
         # df["snapshot_url"], _avpayload = check_availability(target_url)
         # df["server_payload"] = _avpayload["server_payload"]
 
@@ -179,8 +188,6 @@ def snapshot(
 
 ###################################################################
 # middle methods
-
-
 
 def fetch_job_status(job_id: tyUnion[str, HtmlElement]) -> dict:
     job_id = job_id if isinstance(job_id, str) else extract_job_id(job_id)

@@ -4,6 +4,12 @@
 Custom exceptions (copied from pastpages/savepagenow)
 """
 
+class TodoError(Exception):
+    """raise this when I'm doing something I haven't implemented yet!"""
+    pass
+
+
+
 class ServerStatusError(Exception):
     pass
 

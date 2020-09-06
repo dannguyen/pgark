@@ -1,7 +1,7 @@
 
 # TODOS
 
-Most recent: 
+Most recent: created TaskMeta class
 
 - [ ] wayback.save: add `-wt/--within` to skip saving if the most recent snapshot is within `[HOURS]`
     - [x] basic implementation stuffed in cli
@@ -13,7 +13,7 @@ Most recent:
 
 In general
 - [ ] Should `server_payload` include HTML if HTML is the last/most relevant response?
-
+- [ ] Handle 50x status errors; should be dealt gracefully at CLI level
 
 ----------------------------------
 #### `wayback save`

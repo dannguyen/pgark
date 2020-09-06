@@ -24,22 +24,27 @@ def session():
 
 ##############################################
 ## test check subcommand
+@freeze_time("2020-09-01 14:30:55+0000")
 @responses.activate
 def test_check_success_and_available():
     target_url = "www.whitehouse.gov/issues/immigration/"
     resptext = EXAMPLES_DIR.joinpath("check/available-true.json").read_text()
-
+    expected_snap_url = "http://web.archive.org/web/20200903230055/https://www.whitehouse.gov/issues/immigration/"
     responses.add(
         "GET", wb.url_for_availability(target_url), body=resptext,
     )
 
-    answer, data = wb.check_availability(target_url)
+    answer, meta = wb.check_availability(target_url)
 
-    assert (
-        answer
-        == "http://web.archive.org/web/20200903230055/https://www.whitehouse.gov/issues/immigration/"
-    )
-    assert data["target_url"] == target_url
+    assert answer == expected_snap_url
+    assert meta.snapshot_url == expected_snap_url
+    assert meta.is_success() is True
+    assert meta.was_new_snapshot_created() is False
+    assert meta.created_at.strftime('%Y-%m-%d %H:%M:%S%z') == '2020-09-01 14:30:55+0000'
+
+    data = meta.to_dict()
+
+    assert data["request_meta"]["target_url"] == target_url
     assert (
         data["server_payload"]["url"] == target_url
     )  # TODO: not sure if this is guranteed, if target_url ends up being redirected??
@@ -59,15 +64,15 @@ def test_check_success_but_not_available():
         "GET", wb.url_for_availability(target_url), body=resptext,
     )
 
-    answer, data = wb.check_availability(target_url)
+    answer, meta = wb.check_availability(target_url)
 
     assert answer is None
-    assert data["snapshot_url"] is None
-    assert data["target_url"] == target_url
-    assert (
-        data["server_payload"]["url"] == target_url
-    )  # TODO: not sure if this is guranteed, if target_url ends up being redirected??
-    assert data["server_payload"]["archived_snapshots"] == {}
+    assert meta.snapshot_url is None
+    assert meta.request_meta["target_url"] == target_url
+    # TODO: not sure if this is guranteed, if target_url ends up being redirected??
+    assert meta.server_payload["url"] == target_url
+
+    assert meta.server_payload["archived_snapshots"] == {}
 
 
 @pytest.mark.skip(reason="TODO")
@@ -148,6 +153,7 @@ def test_snapshot_submit_request_not_ok(session):
 
 ##############################################
 ## test snapshot subcommand
+@freeze_time("2020-09-01 14:30:55+0000")
 @responses.activate
 def test_snapshot_successful():
     #### fixture setup (todo: refactor?)
@@ -201,7 +207,9 @@ def test_snapshot_successful():
 
     # test return values
     assert type(answer) is str
-    assert type(meta) is wb.SnapshotMeta
+    assert type(meta) is wb.TaskMeta
+    assert meta.subcommand == 'snapshot'
+    assert meta.created_at.strftime('%Y-%m-%d %H:%M:%S%z') == '2020-09-01 14:30:55+0000'
 
 
     data = meta.to_dict()
@@ -216,6 +224,7 @@ def test_snapshot_successful():
     )
 
     # test data response
+    assert data['subcommand'] == 'snapshot'
     assert data["was_new_snapshot_created"] is True
     assert data["snapshot_url"] == answer
     assert data["request_meta"]["user_agent"] == "guy incognito"
@@ -265,6 +274,7 @@ def test_snapshot_too_soon():
     answer, meta = wb.snapshot(target_url, poll_interval=0)
 
     assert answer == meta.snapshot_url
+    assert meta.subcommand == 'snapshot'
     assert meta.was_new_snapshot_created() is False
     assert (
         meta.too_soon() == "The same snapshot had been made 4 minutes and 18 seconds ago. We only allow new captures of the same URL every 20 minutes."
@@ -299,6 +309,7 @@ def test_snapshot_too_many_for_period():
     answer, meta = wb.snapshot(target_url, poll_interval=0)
 
     assert answer == meta.snapshot_url
+    assert meta.subcommand == 'snapshot'
     assert meta.was_new_snapshot_created() == False
     assert (
          meta.too_many_during_period() == """This URL has been already captured 10 times today. Please email us at "info@archive.org" if you would like to discuss this more."""
@@ -311,8 +322,6 @@ def test_snapshot_too_many_for_period():
 
 
 
-
-@pytest.mark.skip(reason="priority todo")
 @freeze_time("2015-11-20")
 @responses.activate
 def test_save_unless_within_hours():
@@ -331,11 +340,23 @@ def test_save_unless_within_hours():
 
     responses.add(
         'GET',
+        wb.url_for_availability(target_url),
         body=jsonlib.dumps(payload),
-
     )
 
-    answer, data = wb.snapshot(target_url, within_hours=24)
-    assert data['was_new_snapshot_created'] is False
-    assert answer == data['snapshot_url']
-    assert data['server_payload'] == payload
+    answer, meta = wb.snapshot(target_url, within_hours=24)
+
+    assert answer == meta.snapshot_url
+    assert meta.request_meta['within_hours'] == 24
+    assert meta.was_new_snapshot_created() is False
+    assert meta.server_payload == payload     # brittle as hell!
+
+
+
+
+
+@pytest.mark.skip(reason="just lazy")
+@freeze_time("2015-11-20")
+@responses.activate
+def test_save_was_not_within_hours():
+    pass

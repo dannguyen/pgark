@@ -130,61 +130,30 @@ def check(url, **kwargs):
     type=click.STRING,
     help="Specify a User-Agent header for the web request",
 )
+
+
+
 def save(url, within_hours, user_agent, **kwargs):
     """
     Attempt to save a snapshot of [URL] using the [-s/--service]. Returns the snapshot URL if successful
     """
     _set_verbosity(**kwargs)
 
-    # todo: this should be part of wayback.save, as opposed to the CLI
-    if within_hours:
-        mylogger.debug("Checking availability of most recent snapshot since {within_hours} hours")
-        recent_url, rdata = wayback.check_availability(url)
-        if recent_url:
-            mylogger.debug(f"Most recent snapshot available: {recent_url}")
-            dt_recent = wayback.extract_wayback_datetime(recent_url)
-            delta_seconds = (pgark.get_today() - dt_recent).seconds
-            delta_hours = delta_seconds / (60 * 60)
-
-            mylogger.debug(f"Recent snapshot within: {delta_seconds} seconds, i.e. {delta_hours} hours")
-
-            # thius definitely needs to be refactored into wayback.save -- cli shoul dhave
-            # no knowledge of this data object
-            if delta_hours < within_hours:
-                mylogger.debug(f"Recent snapshot URL within threshold of {within_hours} hours; returning availability response")
-                data = {
-                        'was_new_snapshot_created': False,
-                        'snapshot_url': recent_url,
-                        'target_url': url,
-                        'issues': {},
-                        'server_payload': rdata,
-                     }
-                answer = data['snapshot_url']
-                #TODO: dry this out
-                if kwargs["output_json"]:
-                    cliprint(data)
-                else:
-                    cliprint(answer)
-                return ## refactor this later
-
-
-            else:
-                mylogger.debug("Recent snapshot URL did not meet threshold of {within_hours} hours, proceeding with normal save")
-
-    # if we get to here, we proceed as normal, and assume that recent_snapshot did not
-    # meet within-hours cutoff, if it was even specified
-
+    # TODO: reduce this messiness
     snapshot_kwargs = {}
     if user_agent:
         snapshot_kwargs["user_agent"] = user_agent
+    if within_hours:
+        snapshot_kwargs["within_hours"] = within_hours
 
-    answer, data = wayback.snapshot(url, **snapshot_kwargs)
-    for i_key, i_value in data["issues"].items():
+
+    answer, taskmeta = wayback.snapshot(url, **snapshot_kwargs)
+    for i_key, i_value in taskmeta.issues.items():
         if i_value:
             mylogger.info(f"{i_key}: {i_value}", label="Wayback Machine notice")
 
     if kwargs["output_json"]:
-        cliprint(data)
+        cliprint(taskmeta)
     else:
         cliprint(answer)
 

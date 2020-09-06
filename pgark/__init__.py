@@ -5,7 +5,7 @@ from .__about__ import __version__
 
 
 from datetime import datetime, timezone
+from pgark.mylog import mylogger
 
-
-def get_today() -> datetime:
+def current_time() -> datetime:
     return datetime.now(tz=timezone.utc)
