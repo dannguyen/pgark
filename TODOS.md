@@ -1,18 +1,22 @@
 
 # TODOS
 
-Most recent: created TaskMeta class
+Most recent: 
 
-- [ ] wayback.save: add `-wt/--within` to skip saving if the most recent snapshot is within `[HOURS]`
+- [X] wayback.save: add `-wt/--within` to skip saving if the most recent snapshot is within `[HOURS]`
     - [x] basic implementation stuffed in cli
-    - [ ] failing test test_save_unless_within_hours() to implement later
-- [X] added pipenv stuff to Makefile; use `make freeze` and `make ship` to publish to pypi
+    - [x] failing test test_save_unless_within_hours() to implement later
 
+- [ ] write a few more tests, especially for cli.save subcommand
+- [ ] TaskMeta needs some refactoring and better OOP design
 
 ----------------------------------
 
 In general
-- [ ] Should `server_payload` include HTML if HTML is the last/most relevant response?
+
+- [X] added pipenv stuff to Makefile; use `make freeze` and `make ship` to publish to pypi
+- [X] created TaskMeta class
+    - [ ] Should `server_payload` include HTML if HTML is the last/most relevant response?
 - [ ] Handle 50x status errors; should be dealt gracefully at CLI level
 
 ----------------------------------
