@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import pipfile
 from setuptools import setup
 import sys
 
 ABOUT = {}
 HERE_PATH = os.path.abspath(os.path.dirname(__file__))
-PIP = pipfile.load("Pipfile")
 
 # deprecated by `make ship`
 # # 'setup.py publish' shortcut.

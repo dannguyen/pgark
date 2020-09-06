@@ -22,13 +22,18 @@ In general
 ----------------------------------
 #### `wayback save`
 
-- [X] wayback.save: when Wayback says "too many captures for today", fall back to availability API check to get nearest snapshot
 
 - [ ] clean up the debug logging in `wayback.snapshot()`
-- how does `snapshot_url` change when target_url has query params and other messiness?
-- in job status (`server_payload`), how does `original_url` differ from `snapshot_url` IF there's a redirect?
+- [ ] how does `snapshot_url` change when target_url has query params and other messiness?
+- [ ] in job status (`server_payload`), how does `original_url` differ from `snapshot_url` IF there's a redirect?
+- [ ] weird error condition in which job id could not be found in HTML, for a job that was recently done (time.gov)
+- [ ] How to handle robots situation?
 
-- [in progress] handle error condition when too many pages have been saved: `examples/web.archive.org/job-save-too-many`
+
+- [X] wayback.save: when Wayback says "too many captures for today", fall back to availability API check to get nearest snapshot
+    - [X] example response: `examples/web.archive.org/job-save-too-many-today`
+
+
 - 
 - [X] In `save` JSON response, rename `snapshot_status` to something different, like `was_new_snapshot_created`
 - [?] is `_init_request` phase needed?
@@ -39,8 +44,6 @@ In general
     - [X] yes, implemented too_soon methods
 
 
-
-- [ ] weird error condition in which job id could not be found in HTML, for a job that was recently done (time.gov)
 
 
 
