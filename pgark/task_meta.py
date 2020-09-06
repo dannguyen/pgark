@@ -12,9 +12,10 @@ class TaskMeta(object):
         self.subcommand = subcommand
         # self.was_new_snapshot_created = False
         self.snapshot_url = None
+        self.target_url = target_url
         self.created_at = current_time()
         self.request_meta = {
-            "target_url": target_url,
+            "target_url": self.target_url,
             "created_at": str(self.created_at),
             "user_agent": kwargs.get("user_agent"),
         }

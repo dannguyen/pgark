@@ -1,0 +1,28 @@
+{
+  "response": {
+    "Server": "nginx/1.15.8",
+    "Date": "Sun, 06 Sep 2020 21:14:44 GMT",
+    "Content-Type": "text/html; charset=utf-8",
+    "Transfer-Encoding": "chunked",
+    "Connection": "keep-alive",
+    "Cache-Control": "no-cache",
+    "Access-Control-Allow-Origin": "http://web.archive.org",
+    "Access-Control-Allow-Credentials": "true",
+    "X-App-Server": "wwwb-app104",
+    "X-ts": "200",
+    "X-Cache-Key": "httpweb.archive.orgen-US,en;q=0.9/save/https://time.govUS",
+    "X-location": "save-post",
+    "Content-Encoding": "gzip"
+  },
+  "request": {
+    "User-Agent": "Mozilla",
+    "Accept-Encoding": "gzip, deflate,",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9",
+    "Connection": "keep-alive",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Origin": "http://web.archive.org",
+    "Referer": "http://web.archive.org/save/",
+    "Content-Length": "41"
+  }
+}

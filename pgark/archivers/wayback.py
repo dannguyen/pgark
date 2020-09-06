@@ -4,7 +4,9 @@ from pgark.exceptions import *
 from pgark import mylogger
 from pgark.task_meta import TaskMeta
 
+
 from datetime import datetime
+import json as jsonlib
 from lxml.html import fromstring as htmlparse, HtmlElement
 from pathlib import Path
 import re
@@ -29,7 +31,7 @@ DEFAULT_HEADERS = {
 
 DEFAULT_POLL_INTERVAL = 3
 
-MAX_JOB_POLLS = 20
+DEFAULT_MAX_POLL_ATTEMPTS = 25
 
 
 def check_availability(
@@ -75,7 +77,11 @@ def snapshot(
     within_hours: int = None,
     user_agent: str = DEFAULT_USER_AGENT,
     poll_interval=DEFAULT_POLL_INTERVAL,
+    poll_attempts=DEFAULT_MAX_POLL_ATTEMPTS,
+    **kwargs,
 ) -> tyTuple[tyUnion[None, str], TaskMeta]:
+
+    _debug_path = kwargs.get('debug_path')
 
     mylogger.debug(f"Snapshotting: {target_url}")
     mylogger.debug(f"With user agent: {user_agent}")
@@ -91,37 +97,30 @@ def snapshot(
         user_agent=user_agent,
     )
 
-    if within_hours:
-        # do intermediary check availability
-        mylogger.debug(
-            f"Checking availability of most recent snapshot since {within_hours} hours"
-        )
-        meta.request_meta["within_hours"] = within_hours
-        recent_url, rmeta = check_availability(target_url)
-        if recent_url:
-            urltime = extract_wayback_datetime(recent_url)
 
-            if not meta.created_within(within_hours, dt=urltime):
-                mylogger.debug(
-                    f"Recent snapshot URL did not meet threshold of {within_hours} hours, proceeding with normal save"
-                )
-            else:
-                mylogger.debug(
-                    f"Recent snapshot URL within threshold of {within_hours} hours; returning availability response"
-                )
-                meta.redirected_task = rmeta
-                meta.snapshot_url = rmeta.snapshot_url
-                meta.set_payload(rmeta.server_payload)
+    if within_hours and _check_availability_within(within_hours, meta):
+        return (meta.snapshot_url, meta)
 
-                return (meta.snapshot_url, meta)
 
     # if we get to here, we proceed as normal, and assume that recent_snapshot did not
     # meet within-hours cutoff, if it was even specified
     mylogger.info(f"Making submission request to {SAVE_ENDPOINT} for {target_url}")
-    sub_resp = submit_snapshot_request(session, target_url, headers)
+    submit_resp = submit_snapshot_request(session, target_url, headers)
 
-    meta.set_issues(parse_snapshot_issues(sub_resp.text))
+    if _debug_path:
+        outpath = _debug_path.joinpath('submit-snapshot-response.html')
+        outpath.write_text(submit_resp.text)
+        mylogger.debug(f'Wrote to: {outpath}', label='snapshot-debug')
 
+        dh = {}
+        dh['response'] = dict(submit_resp.headers)
+        dh['request'] = dict(submit_resp.request.headers)
+        outpath = _debug_path.joinpath('submit-snapshot-headers.json')
+        outpath.write_text(jsonlib.dumps(dh, indent=2))
+        mylogger.debug(f'Wrote to: {outpath}', label='snapshot-debug')
+
+
+    meta.set_issues(parse_snapshot_issues(submit_resp.text))
     if meta.too_many_during_period():
         # this means there is no job to capture, and we have to get
         # snapshot URL using check_availability method
@@ -136,26 +135,18 @@ def snapshot(
 
     ### /issues
     else:
-        job_id = extract_job_id(sub_resp.text)
-        job_url = url_for_jobstatus(job_id)
+        for i, jdata in poll_job_status(submit_resp, meta, poll_attempts, poll_interval):
+            if _debug_path:
+                outpath = _debug_path.joinpath(f"status-{str(i).rjust(2, '0')}.json")
+                outpath.write_text(jsonlib.dumps(jdata, indent=2))
+                mylogger.debug(f'Wrote to: {outpath}' , label='snapshot-debug')
 
-        for i in range(MAX_JOB_POLLS):
-            mylogger.debug(f"""Polling status, attempt #{i+1}: {job_url}""")
 
-            js = fetch_job_status(job_url)
-            meta.set_payload(js)
+    if _debug_path:
+        outpath = _debug_path.joinpath('taskmeta.json')
+        outpath.write_text(jsonlib.dumps(meta.to_dict(), indent=2))
+        mylogger.debug(f'Wrote to: {outpath}', label='snapshot-debug')
 
-            # TODO: figure out a better way to have the Meta class handle this...
-            if js.get("status") == "success":
-                meta.snapshot_url = url_for_snapshot(
-                    js["original_url"], js["timestamp"]
-                )
-
-            if meta.is_success():
-                break
-            else:
-                if poll_interval:
-                    sleep(poll_interval)
 
     answer = meta.snapshot_url
     return (answer, meta)
@@ -171,6 +162,34 @@ def snapshot(
 
 ###################################################################
 # middle methods
+
+
+def _check_availability_within(within_hours, taskmeta:TaskMeta) -> bool:
+    # do intermediary check availability
+    # MESSY MESSY TODO
+    target_url = taskmeta.target_url
+
+    mylogger.debug(
+        f"Checking availability of most recent snapshot since {within_hours} hours"
+    )
+    taskmeta.request_meta["within_hours"] = within_hours
+    recent_url, rmeta = check_availability(target_url)
+    if recent_url:
+        urltime = extract_wayback_datetime(recent_url)
+
+        if not taskmeta.created_within(within_hours, dt=urltime):
+            mylogger.debug(
+                f"Recent snapshot URL did not meet threshold of {within_hours} hours, proceeding with normal save"
+            )
+            return False
+        else:
+            mylogger.debug(
+                f"Recent snapshot URL within threshold of {within_hours} hours; returning availability response"
+            )
+            taskmeta.redirected_task = rmeta
+            taskmeta.snapshot_url = rmeta.snapshot_url
+            taskmeta.set_payload(rmeta.server_payload)
+            return True
 
 
 def fetch_job_status(job_id: tyUnion[str, HtmlElement]) -> dict:
@@ -189,7 +208,29 @@ def parse_snapshot_issues(html: str) -> dict:
     return dd
 
 
-def submit_snapshot_request(session, url, headers):
+def poll_job_status(resp:requests.models.Response, meta:TaskMeta, poll_attempts:int, poll_interval:tyUnion[int, None]) -> NoReturn:
+    job_id = extract_job_id(resp.text)
+    job_url = url_for_jobstatus(job_id)
+    for i in range(poll_attempts):
+        mylogger.debug(f"""Polling status, attempt #{i+1}: {job_url}""")
+
+        job_resp = fetch_job_status(job_url)
+        yield i, job_resp  # for debugging purposes
+
+        meta.set_payload(job_resp)
+        # TODO: figure out a better way to have the Meta class handle this...
+        if job_resp.get("status") == "success":
+            meta.snapshot_url = url_for_snapshot(
+                job_resp["original_url"], job_resp["timestamp"]
+            )
+
+        if meta.is_success():
+            break
+        else:
+            if poll_interval:
+                sleep(poll_interval)
+
+def submit_snapshot_request(session:requests.sessions.Session, url:str, headers:dict) -> requests.models.Response:
     save_url = url_for_savepage(url)
     sub_headers = headers.copy()
     sub_headers.update({"Referer": SAVE_ENDPOINT})

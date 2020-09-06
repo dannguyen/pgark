@@ -1,0 +1,13 @@
+{
+  "first_archive": true,
+  "outlinks": [],
+  "timestamp": "20200906212714",
+  "duration_sec": 3.555,
+  "resources": [
+    "https://example.com/2020/09/20/foobar",
+    "https://example.com/favicon.ico"
+  ],
+  "status": "success",
+  "job_id": "7734e1a3-8a3d-4228-ae2d-592c82248194",
+  "original_url": "https://example.com/2020/09/20/foobar"
+}

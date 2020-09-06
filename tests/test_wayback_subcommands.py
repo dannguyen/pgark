@@ -35,6 +35,7 @@ def test_check_success_and_available():
 
     assert answer == expected_snap_url
     assert meta.snapshot_url == expected_snap_url
+    assert meta.target_url == target_url
     assert meta.is_success() is True
     assert meta.was_new_snapshot_created() is False
     assert meta.created_at.strftime("%Y-%m-%d %H:%M:%S%z") == "2020-09-01 14:30:55+0000"
@@ -206,6 +207,7 @@ def test_snapshot_successful():
     assert type(answer) is str
     assert type(meta) is wb.TaskMeta
     assert meta.subcommand == "snapshot"
+    assert meta.target_url == target_url
     assert meta.created_at.strftime("%Y-%m-%d %H:%M:%S%z") == "2020-09-01 14:30:55+0000"
 
     data = meta.to_dict()

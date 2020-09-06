@@ -5,7 +5,8 @@
 
 
 On deck:
-- [ ] redo tasks/savepage_debug.py, save headers and stuff too
+- [x] redo tasks/savepage_debug.py, save headers and stuff too
+    - [ ] think of more robust design for a debug callback
 
 - [X] wayback.save: add `-wt/--within` to skip saving if the most recent snapshot is within `[HOURS]`
     - [x] basic implementation stuffed in cli

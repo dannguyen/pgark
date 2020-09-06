@@ -1,0 +1,26 @@
+{
+  "was_new_snapshot_created": false,
+  "service": "wayback",
+  "subcommand": "snapshot",
+  "snapshot_url": "http://web.archive.org/web/20200906210202/https://www.nytimes.com/",
+  "issues": {
+    "too_soon": false,
+    "too_many_during_period": "This URL has been already captured 10 times today. Please email us at \"info@archive.org\" if you would like to discuss this more."
+  },
+  "request_meta": {
+    "target_url": "https://nytimes.com",
+    "created_at": "2020-09-06 21:16:53.461867+00:00",
+    "user_agent": "Mozilla"
+  },
+  "server_payload": {
+    "archived_snapshots": {
+      "closest": {
+        "timestamp": "20200906210202",
+        "status": "200",
+        "available": true,
+        "url": "http://web.archive.org/web/20200906210202/https://www.nytimes.com/"
+      }
+    },
+    "url": "https://nytimes.com"
+  }
+}
