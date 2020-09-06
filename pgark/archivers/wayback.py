@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from pgark.exceptions import *
-from pgark.mylog import mylogger
+from pgark import mylogger
 from pgark.task_meta import TaskMeta
 
 from datetime import datetime
@@ -32,7 +32,9 @@ DEFAULT_POLL_INTERVAL = 3
 MAX_JOB_POLLS = 20
 
 
-def check_availability(target_url: str, user_agent:tyUnion[None, str] = DEFAULT_USER_AGENT ) -> tyTuple[tyUnion[None, str], TaskMeta]:
+def check_availability(
+    target_url: str, user_agent: tyUnion[None, str] = DEFAULT_USER_AGENT
+) -> tyTuple[tyUnion[None, str], TaskMeta]:
     """
 
     API info:
@@ -54,18 +56,18 @@ def check_availability(target_url: str, user_agent:tyUnion[None, str] = DEFAULT_
     }
     """
 
-    task = TaskMeta(target_url=target_url, service='wayback', subcommand='check')
+    task = TaskMeta(target_url=target_url, service="wayback", subcommand="check")
     resp = requests.get(url_for_availability(target_url))
     # TODO: status check blah blah
     if not resp.status_code == 200:
         raise ServerStatusError(f"Did not get OK HTTP status; got: {resp.status_code}")
     else:
-       task.set_payload(resp.json())
-       # TODO: this should be handled by TaskMeta somehow....
-       if ax := task.server_payload["archived_snapshots"]:
-           task.snapshot_url = ax["closest"]["url"]
+        task.set_payload(resp.json())
+        # TODO: this should be handled by TaskMeta somehow....
+        if ax := task.server_payload["archived_snapshots"]:
+            task.snapshot_url = ax["closest"]["url"]
 
-       return task.snapshot_url, task
+        return task.snapshot_url, task
 
 
 def snapshot(
@@ -75,44 +77,43 @@ def snapshot(
     poll_interval=DEFAULT_POLL_INTERVAL,
 ) -> tyTuple[tyUnion[None, str], TaskMeta]:
 
-
     mylogger.debug(f"Snapshotting: {target_url}")
     mylogger.debug(f"With user agent: {user_agent}")
 
     headers = DEFAULT_HEADERS.copy()
     headers["User-Agent"] = user_agent
 
-    # df = {
-    #     "was_new_snapshot_created": False,
-    #     "snapshot_url": None,
-    #     "snapshot_request": {"target_url": target_url, "user_agent": user_agent,},
-    #     "job_id": None,
-    #     "job_url": None,
-    #     "server_payload": {},
-    # }
-
     session = requests.Session()
-    meta = TaskMeta(target_url=target_url, service='wayback', subcommand='snapshot',
-        user_agent=user_agent, )
+    meta = TaskMeta(
+        target_url=target_url,
+        service="wayback",
+        subcommand="snapshot",
+        user_agent=user_agent,
+    )
 
     if within_hours:
         # do intermediary check availability
-        mylogger.debug(f"Checking availability of most recent snapshot since {within_hours} hours")
-        meta.request_meta['within_hours'] = within_hours
+        mylogger.debug(
+            f"Checking availability of most recent snapshot since {within_hours} hours"
+        )
+        meta.request_meta["within_hours"] = within_hours
         recent_url, rmeta = check_availability(target_url)
         if recent_url:
             urltime = extract_wayback_datetime(recent_url)
 
             if not meta.created_within(within_hours, dt=urltime):
-                mylogger.debug(f"Recent snapshot URL did not meet threshold of {within_hours} hours, proceeding with normal save")
+                mylogger.debug(
+                    f"Recent snapshot URL did not meet threshold of {within_hours} hours, proceeding with normal save"
+                )
             else:
-                mylogger.debug(f"Recent snapshot URL within threshold of {within_hours} hours; returning availability response")
+                mylogger.debug(
+                    f"Recent snapshot URL within threshold of {within_hours} hours; returning availability response"
+                )
                 meta.redirected_task = rmeta
                 meta.snapshot_url = rmeta.snapshot_url
                 meta.set_payload(rmeta.server_payload)
 
                 return (meta.snapshot_url, meta)
-
 
     # if we get to here, we proceed as normal, and assume that recent_snapshot did not
     # meet within-hours cutoff, if it was even specified
@@ -120,16 +121,7 @@ def snapshot(
     sub_resp = submit_snapshot_request(session, target_url, headers)
 
     meta.set_issues(parse_snapshot_issues(sub_resp.text))
-    # df["issues"] = issues
 
-    ##################################################
-    # ## issues handling
-    # ## refactor this later, when there are more issues
-    # df["was_new_snapshot_created"] = not any(
-    #     i for i in (issues["too_soon"], issues["too_many_during_period"],)
-    # )
-
-    # if df["issues"]["too_many_during_period"]:
     if meta.too_many_during_period():
         # this means there is no job to capture, and we have to get
         # snapshot URL using check_availability method
@@ -140,15 +132,10 @@ def snapshot(
         #   some kind of partial response...
         meta.snapshot_url, ck = check_availability(target_url)
         meta.set_payload(ck.server_payload)
-        # df["snapshot_url"], _avpayload = check_availability(target_url)
-        # df["server_payload"] = _avpayload["server_payload"]
+        meta.redirected_task = "check"
 
     ### /issues
     else:
-        # TKTK refactor into a method
-        # unneeded meta info?
-        # df["job_id"] = extract_job_id(sub_resp.text)
-        # df["job_url"] = url_for_jobstatus(df["job_id"])
         job_id = extract_job_id(sub_resp.text)
         job_url = url_for_jobstatus(job_id)
 
@@ -156,12 +143,13 @@ def snapshot(
             mylogger.debug(f"""Polling status, attempt #{i+1}: {job_url}""")
 
             js = fetch_job_status(job_url)
-            # df["server_payload"] = js
             meta.set_payload(js)
 
             # TODO: figure out a better way to have the Meta class handle this...
             if js.get("status") == "success":
-                meta.snapshot_url = url_for_snapshot(js["original_url"], js["timestamp"])
+                meta.snapshot_url = url_for_snapshot(
+                    js["original_url"], js["timestamp"]
+                )
 
             if meta.is_success():
                 break
@@ -181,13 +169,9 @@ def snapshot(
 #     pass
 
 
-
-
-
-
-
 ###################################################################
 # middle methods
+
 
 def fetch_job_status(job_id: tyUnion[str, HtmlElement]) -> dict:
     job_id = job_id if isinstance(job_id, str) else extract_job_id(job_id)
@@ -219,7 +203,6 @@ def submit_snapshot_request(session, url, headers):
         )
     else:
         return resp
-
 
 
 ###################################################################
@@ -257,7 +240,7 @@ def extract_too_soon_issue(html: tyUnion[str, HtmlElement]) -> tyUnion[str, bool
         return False
 
 
-def extract_wayback_datetime(txt:str) -> datetime:
+def extract_wayback_datetime(txt: str) -> datetime:
     """
     txt is either a 14-char timestamp by itself:
             "20200312180055"
@@ -268,11 +251,13 @@ def extract_wayback_datetime(txt:str) -> datetime:
     """
 
     try:
-        m = re.search(r'(?:^|/)(\d{14})(?:$|/)', txt)
-        ts = m.groups()[0] + ' +0000'
-        dt = datetime.strptime(ts, '%Y%m%d%H%M%S %z')
+        m = re.search(r"(?:^|/)(\d{14})(?:$|/)", txt)
+        ts = m.groups()[0] + " +0000"
+        dt = datetime.strptime(ts, "%Y%m%d%H%M%S %z")
     except Exception as e:
-        raise ValueError(f"Attempted to extract a 14-digit timestamp, but did not find pattern in {txt}")
+        raise ValueError(
+            f"Attempted to extract a 14-digit timestamp, but did not find pattern in {txt}"
+        )
     else:
         return dt
 
@@ -303,9 +288,6 @@ def extract_too_many_during_period_issue(
             )
 
 
-
-
-
 def url_for_availability(target_url: str) -> str:
     return f"{AVAILABLE_ENDPOINT}?url={target_url}"
 
@@ -320,4 +302,3 @@ def url_for_savepage(target_url: str) -> str:
 
 def url_for_snapshot(target_url: str, timestamp: tyUnion[str, int]) -> str:
     return "/".join([BASE_DOMAIN, "web", str(timestamp), target_url])
-

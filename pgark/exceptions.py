@@ -4,14 +4,16 @@
 Custom exceptions (copied from pastpages/savepagenow)
 """
 
+
 class TodoError(Exception):
     """raise this when I'm doing something I haven't implemented yet!"""
-    pass
 
+    pass
 
 
 class ServerStatusError(Exception):
     pass
+
 
 class WaybackRuntimeError(Exception):
     """
@@ -21,17 +23,12 @@ class WaybackRuntimeError(Exception):
     pass
 
 
-
 class WaybackRobotsError(WaybackRuntimeError):
     """
     This error is raised when archive.org has been blocked by the site's robots.txt access control instructions.
     """
 
     pass
-
-
-
-
 
 
 ### todo: these should only have Wayback scope??

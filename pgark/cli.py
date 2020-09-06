@@ -5,7 +5,7 @@ import json as jsonlib
 from typing import NoReturn
 
 import pgark
-from pgark.mylog import mylogger
+from pgark import mylogger
 from pgark.archivers import wayback
 
 OPTIONS_COMMON = [
@@ -120,7 +120,9 @@ def check(url, **kwargs):
 @add_options(OPTIONS_COMMON, OPTIONS_OUTPUT)
 @click.argument("url")
 @click.option(
-    "-wt", "--within", "within_hours",
+    "-wt",
+    "--within",
+    "within_hours",
     type=click.INT,
     help="Check the [service] for the most recent snapshot; if it is `--within [HOURS]` from right now, then *do not* create a new snapshot. Recent snapshot URL and data payload returned similar to using the `check` subcommand",
 )
@@ -130,9 +132,6 @@ def check(url, **kwargs):
     type=click.STRING,
     help="Specify a User-Agent header for the web request",
 )
-
-
-
 def save(url, within_hours, user_agent, **kwargs):
     """
     Attempt to save a snapshot of [URL] using the [-s/--service]. Returns the snapshot URL if successful
@@ -145,7 +144,6 @@ def save(url, within_hours, user_agent, **kwargs):
         snapshot_kwargs["user_agent"] = user_agent
     if within_hours:
         snapshot_kwargs["within_hours"] = within_hours
-
 
     answer, taskmeta = wayback.snapshot(url, **snapshot_kwargs)
     for i_key, i_value in taskmeta.issues.items():

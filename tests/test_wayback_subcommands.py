@@ -1,4 +1,3 @@
-
 import pytest
 from freezegun import freeze_time
 import responses
@@ -10,8 +9,6 @@ import requests
 
 from pgark.exceptions import *
 import pgark.archivers.wayback as wb
-
-
 
 
 EXAMPLES_DIR = Path("examples/web.archive.org/")
@@ -40,7 +37,7 @@ def test_check_success_and_available():
     assert meta.snapshot_url == expected_snap_url
     assert meta.is_success() is True
     assert meta.was_new_snapshot_created() is False
-    assert meta.created_at.strftime('%Y-%m-%d %H:%M:%S%z') == '2020-09-01 14:30:55+0000'
+    assert meta.created_at.strftime("%Y-%m-%d %H:%M:%S%z") == "2020-09-01 14:30:55+0000"
 
     data = meta.to_dict()
 
@@ -208,9 +205,8 @@ def test_snapshot_successful():
     # test return values
     assert type(answer) is str
     assert type(meta) is wb.TaskMeta
-    assert meta.subcommand == 'snapshot'
-    assert meta.created_at.strftime('%Y-%m-%d %H:%M:%S%z') == '2020-09-01 14:30:55+0000'
-
+    assert meta.subcommand == "snapshot"
+    assert meta.created_at.strftime("%Y-%m-%d %H:%M:%S%z") == "2020-09-01 14:30:55+0000"
 
     data = meta.to_dict()
     # test that answer is snapshot url
@@ -224,7 +220,7 @@ def test_snapshot_successful():
     )
 
     # test data response
-    assert data['subcommand'] == 'snapshot'
+    assert data["subcommand"] == "snapshot"
     assert data["was_new_snapshot_created"] is True
     assert data["snapshot_url"] == answer
     assert data["request_meta"]["user_agent"] == "guy incognito"
@@ -239,8 +235,6 @@ def test_snapshot_successful():
 
     # not sure if this is always the case...what happens if there's a redirect?
     assert jd["original_url"] == target_url
-
-
 
 
 #########################
@@ -274,10 +268,11 @@ def test_snapshot_too_soon():
     answer, meta = wb.snapshot(target_url, poll_interval=0)
 
     assert answer == meta.snapshot_url
-    assert meta.subcommand == 'snapshot'
+    assert meta.subcommand == "snapshot"
     assert meta.was_new_snapshot_created() is False
     assert (
-        meta.too_soon() == "The same snapshot had been made 4 minutes and 18 seconds ago. We only allow new captures of the same URL every 20 minutes."
+        meta.too_soon()
+        == "The same snapshot had been made 4 minutes and 18 seconds ago. We only allow new captures of the same URL every 20 minutes."
     )
 
 
@@ -309,10 +304,11 @@ def test_snapshot_too_many_for_period():
     answer, meta = wb.snapshot(target_url, poll_interval=0)
 
     assert answer == meta.snapshot_url
-    assert meta.subcommand == 'snapshot'
+    assert meta.subcommand == "snapshot"
     assert meta.was_new_snapshot_created() == False
     assert (
-         meta.too_many_during_period() == """This URL has been already captured 10 times today. Please email us at "info@archive.org" if you would like to discuss this more."""
+        meta.too_many_during_period()
+        == """This URL has been already captured 10 times today. Please email us at "info@archive.org" if you would like to discuss this more."""
     )
 
     # import pdb; pdb.set_trace()
@@ -320,39 +316,32 @@ def test_snapshot_too_many_for_period():
     assert meta.server_payload["archived_snapshots"]["closest"]["available"] is True
 
 
-
-
 @freeze_time("2015-11-20")
 @responses.activate
 def test_save_unless_within_hours():
     target_url = "http://example.com/foo"
     payload = {
-              "url": "http://example.com/foo",
-              "archived_snapshots": {
-                "closest": {
-                  "available": True,
-                  "status": "200",
-                  "timestamp": "20151120111111",
-                  "url": "http://web.archive.org/web/20151118111111/http://example.com/foo"
-                }
-              }
+        "url": "http://example.com/foo",
+        "archived_snapshots": {
+            "closest": {
+                "available": True,
+                "status": "200",
+                "timestamp": "20151120111111",
+                "url": "http://web.archive.org/web/20151118111111/http://example.com/foo",
             }
+        },
+    }
 
     responses.add(
-        'GET',
-        wb.url_for_availability(target_url),
-        body=jsonlib.dumps(payload),
+        "GET", wb.url_for_availability(target_url), body=jsonlib.dumps(payload),
     )
 
     answer, meta = wb.snapshot(target_url, within_hours=24)
 
     assert answer == meta.snapshot_url
-    assert meta.request_meta['within_hours'] == 24
+    assert meta.request_meta["within_hours"] == 24
     assert meta.was_new_snapshot_created() is False
-    assert meta.server_payload == payload     # brittle as hell!
-
-
-
+    assert meta.server_payload == payload  # brittle as hell!
 
 
 @pytest.mark.skip(reason="just lazy")

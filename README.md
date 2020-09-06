@@ -14,6 +14,47 @@ Install with:
 
     $ pip install pgark
 
+
+The available subcommands are:
+
+```
+  check  Check if there is a snapshot of [URL] on the [-s/--service].
+  save   Attempt to save a snapshot of [URL] using the [-s/--service].
+```
+
+(for now, only the Wayback Machine service is implemented, so ignore `-s` flag)
+
+
+
+#### Saving a snapshot of a URL
+
+    $ pgark save whitehouse.gov
+    http://web.archive.org/web/20200904230109/https://www.whitehouse.gov/
+
+To get the JSON response with pgark-snapshot metadata and the Wayback
+Machine API job status response, pass in `-j/--json` flag:
+
+    $ pgark -j save whitehouse.gov
+
+```json
+  {
+    "snapshot_url": "http://web.archive.org/web/20200904230109/https://www.whitehouse.gov/",
+    "...": "...",
+    "server_payload": {
+      "status": "success",
+      "duration_sec": 10.638,
+      "job_id": "443e89c2-fd3e-4d01-bd35-abfccc3a124a",
+      "...": "..."
+    }
+  }
+```
+
+See an example of the Wayback Machine\'s full JSON response in:
+[examples/web.archive.org/job-save-success.json](examples/web.archive.org/job-save-success.json)
+
+
+#### Checking if a URL is already snapshotted
+
 For a given URL, to get the latest available snapshot for a URL:
 
     $ pgark check whitehouse.gov
@@ -28,47 +69,22 @@ To get the JSON response from the Wayback Machine API, pass in the
 
 ```json
 {
-  "archived_snapshots": {
-    "closest": {
-      "timestamp": "20200904180914",
-      "status": "200",
-      "available": true,
-      "url": "http://web.archive.org/web/20200904180914/https://www.whitehouse.gov/"
-    }
-  },
-  "url": "whitehouse.gov"
+    "snapshot_url": "http://web.archive.org/web/20200904180914/https://www.whitehouse.gov/",
+    "server_payload": {
+    "archived_snapshots": {
+      "closest": {
+        "timestamp": "20200904180914",
+        "status": "200",
+        "available": true,
+        "url": "http://web.archive.org/web/20200904180914/https://www.whitehouse.gov/"
+      }
+    },
+    "url": "whitehouse.gov"
+  }
 }
 ```
 
 
-To save a URL on the Wayback Machine:
-
-    $ pgark save whitehouse.gov
-    http://web.archive.org/web/20200904230109/https://www.whitehouse.gov/
-
-To get the JSON response with pgark-snapshot metadata and the Wayback
-Machine API job status response, pass in `-j/--json` flag:
-
-    $ pgark -j save whitehouse.gov
-
-```json
-  {
-    "snapshot_status": "success",
-    "snapshot_url": "http://web.archive.org/web/20200904230109/https://www.whitehouse.gov/",
-    "...": "...",
-    "server_payload": {
-      "status": "success",
-      "duration_sec": 10.638,
-      "job_id": "443e89c2-fd3e-4d01-bd35-abfccc3a124a",
-      "...": "..."
-    },
-    "...": "...",
-    "job_url": "http://web.archive.org/status/443e89c2-fd3e-4d01-bd35-abfccc3a124a"
-  }
-```
-
-See an example of the Wayback Machine\'s full JSON response in:
-[examples/web.archive.org/job-save-success.json](examples/web.archive.org/job-save-success.json)
 
 Project status
 --------------

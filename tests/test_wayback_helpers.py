@@ -22,27 +22,24 @@ def too_many_html():
     ).read_text()
 
 
-
-
 def test_extract_wayback_datetime():
-      timestamp = "20200312180055"
-      dx = wb.extract_wayback_datetime(timestamp)
-      assert dx.year    == 2020
-      assert dx.month   == 3
-      assert dx.day     == 12
-      assert dx.hour    == 18
-      assert dx.minute  == 0
-      assert dx.second  == 55
+    timestamp = "20200312180055"
+    dx = wb.extract_wayback_datetime(timestamp)
+    assert dx.year == 2020
+    assert dx.month == 3
+    assert dx.day == 12
+    assert dx.hour == 18
+    assert dx.minute == 0
+    assert dx.second == 55
 
-
-      url = "http://web.archive.org/web/20200903234402/https://www.whitehouse.gov/issues/immigration/"
-      dy = wb.extract_wayback_datetime(url)
-      assert dy.year    == 2020
-      assert dy.month   == 9
-      assert dy.day     == 3
-      assert dy.hour    == 23
-      assert dy.minute  == 44
-      assert dy.second  == 2
+    url = "http://web.archive.org/web/20200903234402/https://www.whitehouse.gov/issues/immigration/"
+    dy = wb.extract_wayback_datetime(url)
+    assert dy.year == 2020
+    assert dy.month == 9
+    assert dy.day == 3
+    assert dy.hour == 23
+    assert dy.minute == 44
+    assert dy.second == 2
 
 
 def test_url_for_jobstatus():

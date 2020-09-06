@@ -5,8 +5,9 @@ from datetime import datetime
 import json as jsonlib
 from typing import NoReturn, Union as tyUnion
 
+
 class TaskMeta(object):
-    def __init__(self, target_url:str, service:str, subcommand:str, **kwargs):
+    def __init__(self, target_url: str, service: str, subcommand: str, **kwargs):
         self.service = service
         self.subcommand = subcommand
         # self.was_new_snapshot_created = False
@@ -15,7 +16,7 @@ class TaskMeta(object):
         self.request_meta = {
             "target_url": target_url,
             "created_at": str(self.created_at),
-            "user_agent": kwargs.get('user_agent'),
+            "user_agent": kwargs.get("user_agent"),
         }
         # self.job = {'id': None, 'url': None}
         self.server_payload = {}
@@ -27,15 +28,20 @@ class TaskMeta(object):
         self.redirected_task = None
 
     def to_dict(self) -> dict:
-        df = {'was_new_snapshot_created': self.was_new_snapshot_created()}
+        df = {"was_new_snapshot_created": self.was_new_snapshot_created()}
 
-        for key in ('service', 'subcommand',
-                'snapshot_url',
-                'issues', 'request_meta', 'server_payload',
-            ):
+        for key in (
+            "service",
+            "subcommand",
+            "snapshot_url",
+            "issues",
+            "request_meta",
+            "server_payload",
+        ):
             df[key] = getattr(self, key)
 
         return df
+
     def __repr__(self):
         return jsonlib.dumps(self.to_dict(), indent=2)
 
@@ -43,13 +49,12 @@ class TaskMeta(object):
         # TODO: wayback machine specific stuff, will subclass later
         return self.snapshot_url is not None
 
-
     def was_new_snapshot_created(self) -> bool:
         # TODO: we should obviously subclass TaskMeta into SnapshotTask and CheckTask; refactor
         # this branching crap later
-        if self.subcommand == 'check':
+        if self.subcommand == "check":
             return False
-        elif self.subcommand == 'snapshot':
+        elif self.subcommand == "snapshot":
             if self.redirected_task:
                 return False
             else:
@@ -58,46 +63,37 @@ class TaskMeta(object):
                     i for i in [self.too_many_during_period(), self.too_soon()]
                 )
         else:
-            raise TodoError(f"TaskMeta.was_new_snapshot_created() can't handle the subcommand of {self.subcommand}!")
+            raise TodoError(
+                f"TaskMeta.was_new_snapshot_created() can't handle the subcommand of {self.subcommand}!"
+            )
 
     # TODO: kill these
     # def add_issue(self, name:str, msg:str) -> NoReturn:
     #     self.issues[name] = msg
 
-    def set_issues(self, issues:dict) -> NoReturn:
+    def set_issues(self, issues: dict) -> NoReturn:
         self.issues = issues
 
-
-    def set_payload(self, payload:dict) -> NoReturn:
+    def set_payload(self, payload: dict) -> NoReturn:
         self.server_payload = payload
-        # TODO: wayback machine specific stuff, will subclass later
-        # if self.server_payload.get('status') == 'success':
-
-
-        #     js.get("status") == "success":
-        #     df["snapshot_url"] = url_for_snapshot(
-        #         js["original_url"], js["timestamp"]
-        #     )
-
 
     ## issue stuff
     def too_many_during_period(self) -> tyUnion[str, None]:
-        msg = self.issues.get('too_many_during_period')
+        msg = self.issues.get("too_many_during_period")
         return msg
 
     def too_soon(self) -> tyUnion[str, None]:
-        msg = self.issues.get('too_soon')
+        msg = self.issues.get("too_soon")
         return msg
 
-
-
-
     # just wtf is this doing here? TODO: worry about it later
-    def created_within(self, x:int, dt:datetime, unit:str='hours') -> bool:
+    def created_within(self, x: int, dt: datetime, unit: str = "hours") -> bool:
         delta_seconds = (self.created_at - dt).seconds
         delta_hours = delta_seconds / (60 * 60)
-        mylogger.debug(f"{dt} is_within {delta_seconds} seconds (i.e. {delta_hours} hours) of {self.created_at}")
-        delta = delta_hours if unit == 'hours' else delta_seconds
+        mylogger.debug(
+            f"{dt} is_within {delta_seconds} seconds (i.e. {delta_hours} hours) of {self.created_at}"
+        )
+        delta = delta_hours if unit == "hours" else delta_seconds
 
         return delta <= x
         # mylogger.debug(f"Most recent snapshot available: {recent_url}")

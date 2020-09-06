@@ -53,7 +53,7 @@ def test_check_w_json():
 
     result = runner.invoke(checkcli, [target_url, "-j"])
     jd = jsonlib.loads(result.output)
-    assert jd['request_meta']["target_url"] == target_url
+    assert jd["request_meta"]["target_url"] == target_url
     ad = jd["server_payload"]["archived_snapshots"]["closest"]
     assert jd["snapshot_url"] == ad["url"]
     assert ad["available"] is True
@@ -84,7 +84,7 @@ def test_check_not_available_w_json():
     result = runner.invoke(checkcli, [target_url, "-j"])
     jd = jsonlib.loads(result.output)
 
-    assert jd['request_meta']["target_url"] == target_url
+    assert jd["request_meta"]["target_url"] == target_url
     assert not jd["snapshot_url"]
     assert jd["server_payload"]["archived_snapshots"] == {}
 
