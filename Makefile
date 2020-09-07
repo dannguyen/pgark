@@ -6,21 +6,17 @@ init:
 	pip install pipenv
 	pipenv install --dev --pre
 
-ship:
-	pipenv run python setup.py sdist bdist_wheel
-	pipenv run twine upload dist/* --skip-existing
-
 
 freeze:
 	pipenv lock --pre --dev
 	pipenv-setup sync --dev
 
 
+ship:
+	pipenv run python setup.py sdist bdist_wheel
+	pipenv run twine upload dist/* --skip-existing
 
 
 test:
-	pipenv run pytest tests
-
-# test:
-# 	coverage run test.py
-# 	coverage report -m
+	# pipenv run pytest tests
+	pytest --cov pgark --cov-report term-missing

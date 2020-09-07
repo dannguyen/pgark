@@ -2,18 +2,38 @@
 # TODOS
 
 
-
-
 On deck:
+
+- [X] add coveralls
+- [ ] clean and DRY up responses-mocks with fixtures: https://github.com/getsentry/responses#responses-as-a-pytest-fixture
+    - [X] fixtures on cli.py
+    - [ ] fixtures on wayback_subcommands 
+
+
+- wayback.save:
+    - handle 40x, 50x situations, similar to waybackpack
+
+- cli:
+    - [ ] add '--log-json/--oj/--output-json' to output JSON response to a file
+
+
+- service:
+    - archive.today: check functionality
+    - local: investigate possibility of local archiving
+        - https://github.com/pirate/ArchiveBox
+
+- [ ] TaskMeta needs some refactoring and better OOP design
+
 - [x] redo tasks/savepage_debug.py, save headers and stuff too
     - [ ] think of more robust design for a debug callback
 
-- [X] wayback.save: add `-wt/--within` to skip saving if the most recent snapshot is within `[HOURS]`
-    - [x] basic implementation stuffed in cli
-    - [x] failing test test_save_unless_within_hours() to implement later
-
 - [ ] write a few more tests, especially for cli.save subcommand
-- [ ] TaskMeta needs some refactoring and better OOP design
+    - [X] wrote tests for save and save --json
+    - [ ] wrote tests that capture logging via `capsys`
+    - [ ] DRY the cumbersome response.mock boilerplate
+
+
+
 
 ----------------------------------
 
@@ -24,7 +44,8 @@ In general
     - [ ] Should `server_payload` include HTML if HTML is the last/most relevant response?
 - [ ] Handle 50x status errors; should be dealt gracefully at CLI level
 - [ ] Document issue in which Wayback Machine availability tells us latest attempted snapshot, but returns an older timestamp(?)
-- [ ] for too_many_today/too_soon, is there a header returned in the submit phase?
+- [X] for too_many_today/too_soon, is there a header returned in the submit phase?
+    - Nope
 
 
 
@@ -53,13 +74,15 @@ In general
 - current timestamp+URL is returned, even if it's using a cached version. Is there a way to inform user that a new cache was NOT saved?
     - [X] yes, implemented too_soon methods
 
+- [X] wayback.save: add `-wt/--within` to skip saving if the most recent snapshot is within `[HOURS]`
+    - [x] basic implementation stuffed in cli
+    - [x] failing test test_save_unless_within_hours() to implement later
 
 
 ----------------------------------
 #### cli
 
 
-- [ ] add '--log-json/--oj/--output-json' to output JSON response to a file
 - [X] cli: make `--verbosity/--quiet` flag part of subcommands, not just main command
     - apparently do as a decorator? https://stackoverflow.com/questions/40182157/shared-options-and-flags-between-commands
 - [X] cli: add version flag `-V/--version`

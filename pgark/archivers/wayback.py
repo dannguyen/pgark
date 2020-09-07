@@ -29,7 +29,7 @@ DEFAULT_HEADERS = {
     "Origin": BASE_DOMAIN,
 }
 
-DEFAULT_POLL_INTERVAL = 3
+DEFAULT_POLL_INTERVAL = 4
 
 DEFAULT_MAX_POLL_ATTEMPTS = 25
 
@@ -60,9 +60,10 @@ def check_availability(
 
     task = TaskMeta(target_url=target_url, service="wayback", subcommand="check")
     resp = requests.get(url_for_availability(target_url))
-    # TODO: status check blah blah
-    if not resp.status_code == 200:
-        raise ServerStatusError(f"Did not get OK HTTP status; got: {resp.status_code}")
+    if resp.status_code != 200:
+        raise ServerStatusError(
+            f"Received a not-OK HTTP status {resp.status_code} from {AVAILABLE_ENDPOINT}"
+        )
     else:
         task.set_payload(resp.json())
         # TODO: this should be handled by TaskMeta somehow....
@@ -76,12 +77,15 @@ def snapshot(
     target_url: str,
     within_hours: int = None,
     user_agent: str = DEFAULT_USER_AGENT,
-    poll_interval=DEFAULT_POLL_INTERVAL,
+    poll_interval=None,
     poll_attempts=DEFAULT_MAX_POLL_ATTEMPTS,
     **kwargs,
 ) -> tyTuple[tyUnion[None, str], TaskMeta]:
 
-    _debug_path = kwargs.get('debug_path')
+    if poll_interval is None:
+        poll_interval = DEFAULT_POLL_INTERVAL
+
+    _debug_path = kwargs.get("debug_path")
 
     mylogger.debug(f"Snapshotting: {target_url}")
     mylogger.debug(f"With user agent: {user_agent}")
@@ -97,28 +101,25 @@ def snapshot(
         user_agent=user_agent,
     )
 
-
     if within_hours and _check_availability_within(within_hours, meta):
         return (meta.snapshot_url, meta)
 
-
     # if we get to here, we proceed as normal, and assume that recent_snapshot did not
     # meet within-hours cutoff, if it was even specified
-    mylogger.info(f"Making submission request to {SAVE_ENDPOINT} for {target_url}")
+    mylogger.info(f"""Request endpoint: {SAVE_ENDPOINT} target_url: {target_url}""")
     submit_resp = submit_snapshot_request(session, target_url, headers)
 
     if _debug_path:
-        outpath = _debug_path.joinpath('submit-snapshot-response.html')
+        outpath = _debug_path.joinpath("submit-snapshot-response.html")
         outpath.write_text(submit_resp.text)
-        mylogger.debug(f'Wrote to: {outpath}', label='snapshot-debug')
+        mylogger.debug(f"Wrote to: {outpath}", label="snapshot-debug")
 
         dh = {}
-        dh['response'] = dict(submit_resp.headers)
-        dh['request'] = dict(submit_resp.request.headers)
-        outpath = _debug_path.joinpath('submit-snapshot-headers.json')
+        dh["response"] = dict(submit_resp.headers)
+        dh["request"] = dict(submit_resp.request.headers)
+        outpath = _debug_path.joinpath("submit-snapshot-headers.json")
         outpath.write_text(jsonlib.dumps(dh, indent=2))
-        mylogger.debug(f'Wrote to: {outpath}', label='snapshot-debug')
-
+        mylogger.debug(f"Wrote to: {outpath}", label="snapshot-debug")
 
     meta.set_issues(parse_snapshot_issues(submit_resp.text))
     if meta.too_many_during_period():
@@ -135,18 +136,18 @@ def snapshot(
 
     ### /issues
     else:
-        for i, jdata in poll_job_status(submit_resp, meta, poll_attempts, poll_interval):
+        for i, jdata in poll_job_status(
+            submit_resp, meta, poll_attempts, poll_interval
+        ):
             if _debug_path:
                 outpath = _debug_path.joinpath(f"status-{str(i).rjust(2, '0')}.json")
                 outpath.write_text(jsonlib.dumps(jdata, indent=2))
-                mylogger.debug(f'Wrote to: {outpath}' , label='snapshot-debug')
-
+                mylogger.debug(f"Wrote to: {outpath}", label="snapshot-debug")
 
     if _debug_path:
-        outpath = _debug_path.joinpath('taskmeta.json')
+        outpath = _debug_path.joinpath("taskmeta.json")
         outpath.write_text(jsonlib.dumps(meta.to_dict(), indent=2))
-        mylogger.debug(f'Wrote to: {outpath}', label='snapshot-debug')
-
+        mylogger.debug(f"Wrote to: {outpath}", label="snapshot-debug")
 
     answer = meta.snapshot_url
     return (answer, meta)
@@ -164,7 +165,7 @@ def snapshot(
 # middle methods
 
 
-def _check_availability_within(within_hours, taskmeta:TaskMeta) -> bool:
+def _check_availability_within(within_hours, taskmeta: TaskMeta) -> bool:
     # do intermediary check availability
     # MESSY MESSY TODO
     target_url = taskmeta.target_url
@@ -208,7 +209,12 @@ def parse_snapshot_issues(html: str) -> dict:
     return dd
 
 
-def poll_job_status(resp:requests.models.Response, meta:TaskMeta, poll_attempts:int, poll_interval:tyUnion[int, None]) -> NoReturn:
+def poll_job_status(
+    resp: requests.models.Response,
+    meta: TaskMeta,
+    poll_attempts: int,
+    poll_interval: tyUnion[int, None],
+) -> NoReturn:
     job_id = extract_job_id(resp.text)
     job_url = url_for_jobstatus(job_id)
     for i in range(poll_attempts):
@@ -230,7 +236,10 @@ def poll_job_status(resp:requests.models.Response, meta:TaskMeta, poll_attempts:
             if poll_interval:
                 sleep(poll_interval)
 
-def submit_snapshot_request(session:requests.sessions.Session, url:str, headers:dict) -> requests.models.Response:
+
+def submit_snapshot_request(
+    session: requests.sessions.Session, url: str, headers: dict
+) -> requests.models.Response:
     save_url = url_for_savepage(url)
     sub_headers = headers.copy()
     sub_headers.update({"Referer": SAVE_ENDPOINT})
@@ -333,7 +342,15 @@ def url_for_availability(target_url: str) -> str:
     return f"{AVAILABLE_ENDPOINT}?url={target_url}"
 
 
-def url_for_jobstatus(job_id: str) -> str:
+def url_for_jobstatus(job_text: str) -> str:
+    """
+    to make things simpler/cleaner for testing, this method can accept the paramater of `job_text`
+    as being either:
+        - a job-id character string: e2c84cc0-105f-468f-840e-c34cbec9dcd8
+        - the entire HTML response from wayback machine
+    """
+    job_id = job_text if not "<!DOCTYPE html>" in job_text else extract_job_id(job_text)
+
     return urljoin(JOB_STATUS_ENDPOINT, job_id)
 
 

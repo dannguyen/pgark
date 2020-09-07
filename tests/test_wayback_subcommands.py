@@ -10,8 +10,10 @@ import requests
 from pgark.exceptions import *
 import pgark.archivers.wayback as wb
 
+wb.DEFAULT_POLL_INTERVAL = 0
 
-EXAMPLES_DIR = Path("examples/_old/")
+
+FIXTURES_DIR = Path("tests/fixtures/_old/")
 
 
 @pytest.fixture
@@ -25,7 +27,7 @@ def session():
 @responses.activate
 def test_check_success_and_available():
     target_url = "www.whitehouse.gov/issues/immigration/"
-    resptext = EXAMPLES_DIR.joinpath("check/available-true.json").read_text()
+    resptext = FIXTURES_DIR.joinpath("check/available-true.json").read_text()
     expected_snap_url = "http://web.archive.org/web/20200903230055/https://www.whitehouse.gov/issues/immigration/"
     responses.add(
         "GET", wb.url_for_availability(target_url), body=resptext,
@@ -56,7 +58,7 @@ def test_check_success_and_available():
 @responses.activate
 def test_check_success_but_not_available():
     target_url = "http://danwin.com/is/poop"
-    resptext = EXAMPLES_DIR.joinpath("check/available-false.json").read_text()
+    resptext = FIXTURES_DIR.joinpath("check/available-false.json").read_text()
 
     responses.add(
         "GET", wb.url_for_availability(target_url), body=resptext,
@@ -67,18 +69,10 @@ def test_check_success_but_not_available():
     assert answer is None
     assert meta.snapshot_url is None
     assert meta.request_meta["target_url"] == target_url
-    # TODO: not sure if this is guranteed, if target_url ends up being redirected??
+    # TODO: not sure if this is guaranteed, if target_url ends up being redirected??
     assert meta.server_payload["url"] == target_url
 
     assert meta.server_payload["archived_snapshots"] == {}
-
-
-@pytest.mark.skip(reason="TODO")
-@responses.activate
-def test_check_success_not_ok():
-    """have no idea when this condition would happen, but let's test for it"""
-    """should check for CLI error message, not raised error"""
-    pass
 
 
 ########################################################################################
@@ -89,7 +83,7 @@ def test_check_success_not_ok():
 def test_save_job_polling():
     jid = "af709a09-c909-4883-b6b3-7350f9be8d7c"
     url = wb.url_for_jobstatus(jid)
-    resptext = EXAMPLES_DIR.joinpath("job-status-success.json").read_text()
+    resptext = FIXTURES_DIR.joinpath("job-status-success.json").read_text()
     responses.add("GET", url, body=resptext)
 
     resp = wb.fetch_job_status(jid)
@@ -101,7 +95,7 @@ def test_save_job_polling():
 def test_snapshot_submit_request(session):
     target_url = "https://plainlanguage.gov/"
     save_url = wb.url_for_savepage(target_url)
-    resptext = EXAMPLES_DIR.joinpath(
+    resptext = FIXTURES_DIR.joinpath(
         "job-save-success/submit-response.html"
     ).read_text()
 
@@ -127,7 +121,7 @@ def test_snapshot_submit_request_not_ok(session):
     """not sure when this would happen, when server is down?"""
     target_url = "https://plainlanguage.gov/"
     save_url = wb.url_for_savepage(target_url)
-    resptext = EXAMPLES_DIR.joinpath(
+    resptext = FIXTURES_DIR.joinpath(
         "job-save-success/submit-response.html"
     ).read_text()
     responses.add(
@@ -149,13 +143,28 @@ def test_snapshot_submit_request_not_ok(session):
     )
 
 
+@pytest.fixture
+def success_status_paths():
+    srcdir = FIXTURES_DIR.joinpath("job-save-success")
+    return iter(
+        [
+            srcdir.joinpath("status-0.json"),
+            srcdir.joinpath("status-1.json"),
+            srcdir.joinpath("status-2.json"),
+            srcdir.joinpath("status-3.json"),
+            srcdir.joinpath("status-9.json"),
+            srcdir.joinpath("status-10.json"),
+        ]
+    )
+
+
 ##############################################
 ## test snapshot subcommand
 @freeze_time("2020-09-01 14:30:55+0000")
 @responses.activate
-def test_snapshot_successful():
+def test_snapshot_successful(success_status_paths):
     #### fixture setup (todo: refactor?)
-    srcdir = EXAMPLES_DIR.joinpath("job-save-success")
+    srcdir = FIXTURES_DIR.joinpath("job-save-success")
 
     target_url = "https://plainlanguage.gov/"
     save_url = wb.url_for_savepage(target_url)
@@ -163,23 +172,6 @@ def test_snapshot_successful():
     submit_resptext = srcdir.joinpath("submit-response.html").read_text()
     expected_job_id = wb.extract_job_id(submit_resptext)
     expected_job_url = wb.url_for_jobstatus(expected_job_id)
-
-    CURRENT_STATUS_ATTEMPT = 0
-    status_paths = [
-        srcdir.joinpath("status-0.json"),
-        srcdir.joinpath("status-1.json"),
-        srcdir.joinpath("status-2.json"),
-        srcdir.joinpath("status-3.json"),
-        srcdir.joinpath("status-9.json"),
-        srcdir.joinpath("status-10.json"),
-    ]
-
-    def _poll_callback(request):
-        nonlocal CURRENT_STATUS_ATTEMPT
-        headers = {}
-        resp_body = status_paths[CURRENT_STATUS_ATTEMPT].read_text()
-        CURRENT_STATUS_ATTEMPT += 1
-        return (200, headers, resp_body)
 
     #### mock responses
     responses.add(
@@ -195,13 +187,19 @@ def test_snapshot_successful():
     )
 
     responses.add_callback(
-        "GET", expected_job_url, callback=_poll_callback,
+        "GET",
+        expected_job_url,
+        callback=lambda req: (
+            200,
+            {},
+            next(success_status_paths).read_text(),
+        ),  # 2nd arg is a headers dict
     )
 
     answer, meta = wb.snapshot(target_url, user_agent="guy incognito", poll_interval=0)
 
-    # make sure snapshot made the expected number of job status polls, plus the POST submit request
-    assert len(responses.calls) == CURRENT_STATUS_ATTEMPT + 1
+    # make sure snapshot, as expected by the setup, exhausted the success_status_paths iterator
+    assert next(success_status_paths, False) is False
 
     # test return values
     assert type(answer) is str
@@ -243,7 +241,7 @@ def test_snapshot_successful():
 # warning situations
 @responses.activate
 def test_snapshot_too_soon():
-    srcdir = EXAMPLES_DIR.joinpath("job-save-too-soon")
+    srcdir = FIXTURES_DIR.joinpath("job-save-too-soon")
     target_url = "https://plainlanguage.gov/"
 
     submit_resptext = srcdir.joinpath("submit-response.html").read_text()
@@ -267,7 +265,7 @@ def test_snapshot_too_soon():
         status=200,
     )
 
-    answer, meta = wb.snapshot(target_url, poll_interval=0)
+    answer, meta = wb.snapshot(target_url)
 
     assert answer == meta.snapshot_url
     assert meta.subcommand == "snapshot"
@@ -281,7 +279,7 @@ def test_snapshot_too_soon():
 # @pytest.mark.skip(reason="Implement conditional branch after issue parsing")
 @responses.activate
 def test_snapshot_too_many_for_period():
-    srcdir = EXAMPLES_DIR.joinpath("job-save-too-many-today")
+    srcdir = FIXTURES_DIR.joinpath("job-save-too-many-today")
     submit_resptext = srcdir.joinpath("submit-response.html").read_text()
     target_url = "https://nytimes.com/"
 
@@ -303,7 +301,7 @@ def test_snapshot_too_many_for_period():
         body=srcdir.joinpath("check-availability.json").read_text(),
     )
 
-    answer, meta = wb.snapshot(target_url, poll_interval=0)
+    answer, meta = wb.snapshot(target_url)
 
     assert answer == meta.snapshot_url
     assert meta.subcommand == "snapshot"

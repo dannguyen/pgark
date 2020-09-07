@@ -7,18 +7,18 @@ import responses
 
 @pytest.fixture()
 def too_soon_html():
-    return Path("examples/_old/save-too-soon.html").read_text()
+    return Path("tests/fixtures/_old/save-too-soon.html").read_text()
 
 
 @pytest.fixture()
 def save_submit_html():
-    return Path("examples/_old/save-submit.html").read_text()
+    return Path("tests/fixtures/_old/save-submit.html").read_text()
 
 
 @pytest.fixture()
 def too_many_html():
     return Path(
-        "examples/_old/job-save-too-many-today/submit-response.html"
+        "tests/fixtures/_old/job-save-too-many-today/submit-response.html"
     ).read_text()
 
 
@@ -40,6 +40,10 @@ def test_extract_wayback_datetime():
     assert dy.hour == 23
     assert dy.minute == 44
     assert dy.second == 2
+
+    with pytest.raises(ValueError) as err:
+        wb.extract_wayback_datetime("2001-12-31")
+    assert "Attempted to extract a 14-digit timestamp" in str(err.value)
 
 
 def test_url_for_jobstatus():

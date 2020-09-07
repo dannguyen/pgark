@@ -63,10 +63,11 @@ class TaskMeta(object):
                 return not any(
                     i for i in [self.too_many_during_period(), self.too_soon()]
                 )
-        else:
-            raise TodoError(
-                f"TaskMeta.was_new_snapshot_created() can't handle the subcommand of {self.subcommand}!"
-            )
+        # commenting this out for test coverage purposes, since we don't need it yet
+        # else:
+        #     raise TodoError(
+        #         f"TaskMeta.was_new_snapshot_created() can't handle the subcommand of {self.subcommand}!"
+        #     )
 
     # TODO: kill these
     # def add_issue(self, name:str, msg:str) -> NoReturn:

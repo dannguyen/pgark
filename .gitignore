@@ -3,6 +3,9 @@ NOTES.md
 drafts/
 sandbox.py
 
+
+.coverage
+
 # OS stuff
 .DS_Store
 .Trashes

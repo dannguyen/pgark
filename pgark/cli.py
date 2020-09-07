@@ -7,6 +7,7 @@ from typing import NoReturn
 import pgark
 from pgark import mylogger
 from pgark.archivers import wayback
+from pgark.exceptions import *
 
 OPTIONS_COMMON = [
     click.option(
@@ -55,16 +56,13 @@ def _callback_print_version(ctx, param, value) -> NoReturn:
 
 def _set_verbosity(**kwargs):
     """TODO: should be decorator?"""
-    if kwargs.get("quiet") is True:
+    vb = kwargs.get("verbosity")
+    if kwargs.get("quiet") is True or vb == 0:
         mylogger.setLevel("ERROR")
-    else:
-        vb = kwargs.get("verbosity")
-        if vb == 2:
-            mylogger.setLevel("DEBUG")
-        elif vb == 1:
-            mylogger.setLevel("INFO")
-        elif vb == 0:
-            mylogger.setLevel("ERROR")
+    elif vb == 1:
+        mylogger.setLevel("INFO")
+    elif vb == 2:
+        mylogger.setLevel("DEBUG")
 
     mylogger.debug("Logger level: ", mylogger.get_level())
 
@@ -112,8 +110,12 @@ def check(url, **kwargs):
     """
     _set_verbosity(**kwargs)
 
-    answer, data = wayback.check_availability(url)
-    cliprint(data) if kwargs["output_json"] is True else cliprint(answer)
+    try:
+        answer, data = wayback.check_availability(url)
+    except ServerStatusError as err:
+        mylogger.error(str(err))
+    else:
+        cliprint(data) if kwargs["output_json"] is True else cliprint(answer)
 
 
 @main.command()
@@ -148,13 +150,9 @@ def save(url, within_hours, user_agent, **kwargs):
     answer, taskmeta = wayback.snapshot(url, **snapshot_kwargs)
     for i_key, i_value in taskmeta.issues.items():
         if i_value:
-            mylogger.info(f"{i_key}: {i_value}", label="Wayback Machine notice")
+            mylogger.info(f"{i_key}: {i_value}", label="Wayback Machine issue")
 
     if kwargs["output_json"]:
         cliprint(taskmeta)
     else:
         cliprint(answer)
-
-
-if __name__ == "__main__":
-    main()
